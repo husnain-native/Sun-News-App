@@ -1,12 +1,17 @@
 import React from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { newsData } from '../data/newsData';
+import BottomTabNavigator from '../navigation/BottomTabNavigator'; // Re-import Bottom Tab Navigator
 
 const BusinessScreen = ({ navigation }) => {
+  
   const renderNewsItem = ({ item }) => (
     <TouchableOpacity 
       style={styles.newsCard} 
-      onPress={() => navigation.navigate('NewsDetail', { news: item })}
+      onPress={() => {
+        console.log(item); // Log the item to check its structure
+        navigation.navigate('NewsDetail', { news: item });
+      }}
     >
       <Image source={item.image} style={styles.newsImage} />
       <Text style={styles.newsTitle}>{item.title}</Text>
@@ -15,14 +20,18 @@ const BusinessScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Business News</Text>
-      <FlatList
-        data={newsData.Business}
-        keyExtractor={(item) => item.id}
-        renderItem={renderNewsItem}
-        showsVerticalScrollIndicator={false}
-      />
+    <View style={{ flex: 1 }}> {/* Parent View to wrap everything */}
+      <View style={styles.container}>
+        <Text style={styles.header}>Business News</Text>
+        
+        <FlatList
+          data={newsData.Business}
+          keyExtractor={(item) => item.id}
+          renderItem={renderNewsItem}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
+    
     </View>
   );
 };

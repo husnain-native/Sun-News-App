@@ -2,7 +2,9 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
 
 const NewsDetailScreen = ({ route }) => {
-  const { news } = route.params;
+
+const { news } = route.params;
+
 
   return (
     <ScrollView style={styles.container}>
@@ -10,7 +12,7 @@ const NewsDetailScreen = ({ route }) => {
       <Text style={styles.title}>{news.title}</Text>
       <Text style={styles.source}>{news.source} • {news.time}</Text>
       <Text style={styles.content}>
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+        {news.content}
       </Text>
     </ScrollView>
   );
