@@ -45,6 +45,28 @@ export const newsData = {
       time: '1 hour ago',
       image: require('../assets/sports1.jpg'),
     },
+    {
+      id: '202',
+      title: 'India wins T20 World Cup after thrilling final',
+      source: 'Cricbuzz',
+      time: '5 hours ago',
+      image: require('../assets/sports2.jpeg'),
+    },
+    {
+      id: '203',
+      title: 'India wins T20 World Cup after thrilling final',
+      source: 'Cricbuzz',
+      time: '5 hours ago',
+      image: require('../assets/sports3.jpeg'),
+    },
+    {
+      id: '204',
+      title: 'India wins T20 World Cup after thrilling final',
+      source: 'Cricbuzz',
+      time: '5 hours ago',
+      image: require('../assets/sports2.jpeg'),
+    },
+
   ],
   Entertainment: [
     {
