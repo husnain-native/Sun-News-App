@@ -2,39 +2,78 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { Bookmark, Share2 } from 'lucide-react-native';
-import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-
-const API_KEY = 'da3704a65f404b3da127339011223fd4'; // 🔹 Your API key
-const defaultImage = require('../assets/notfound.png'); // ✅ Import the default image
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { decode } from 'html-entities'; // For decoding HTML entities
 
 const SportsSection = ({ navigation }) => {
   const [sportsNews, setSportsNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchSportsNews = async () => {
+    try {
+      const response = await axios.get(
+        'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed'
+      );
+      setSportsNews(response.data);
+    } catch (error) {
+      console.error('Error fetching sports news:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchNews = async () => {
-      try {
-        const [sportsRes] = await Promise.all([
-          axios.get(`https://newsapi.org/v2/top-headlines?category=sports&country=us&apiKey=${API_KEY}`),
-        ]);
-
-        setSportsNews(sportsRes.data.articles);
-      } catch (error) {
-        console.error('Error fetching sports news:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNews();
+    fetchSportsNews();
   }, []);
+
+  const renderNewsItem = ({ item }) => {
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+
+    return (
+      <TouchableOpacity 
+        style={styles.card}
+        onPress={() => navigation.navigate('NewsDetails', { 
+          news: {
+            title: decode(item.title.rendered),
+            content: decode(item.content.rendered),
+            description: decode(item.excerpt.rendered),
+            image: imageUrl,
+            source: { name: 'Sun News' },
+            publishedAt: item.date
+          }
+        })}
+      >
+        <Image 
+          source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} 
+          style={styles.cardImage} 
+        />
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardTitle} numberOfLines={3}>{decode(item.title.rendered)}</Text>
+          <View style={styles.bottomRow}>
+  <View style={styles.dateContainer}>
+    <MaterialCommunityIcons name="calendar" size={16} color="gray" />
+    <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+  </View>
+  <View style={styles.iconRow}>
+    <Bookmark size={20} color="gray" />
+    <Share2 size={20} color="gray" style={{ marginLeft: 12 }} />
+  </View>
+</View>
+
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
+  }
 
   return (
     <View style={styles.sectionContainer}>
-      {/* Header */}
       <View style={styles.headerRow}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <MaterialCommunityIcons name="football" size={35} color="#BF272a" />
+          <MaterialCommunityIcons name="football" size={34} color="#BF272a" />
           <Text style={styles.sectionTitle}>SPORTS</Text>
         </View>
         <TouchableOpacity onPress={() => navigation.navigate('Sports')}>
@@ -42,61 +81,95 @@ const SportsSection = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Loader */}
-      {loading ? (
-        <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />
-      ) : (
-        <FlatList
-          data={sportsNews.slice(0, 3)} // Show top 3 news items
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.listItem}
-              onPress={() => navigation.navigate('NewsDetails', { news: item })}
-            >
-              <Image 
-                source={item.urlToImage ? { uri: item.urlToImage } : defaultImage} 
-                style={styles.listImage} 
-                onError={() => defaultImage} // ✅ Fallback to 'notfound.png' if image fails to load
-              />
-              <View style={styles.listTextContainer}>
-                <Text style={styles.listTitle} numberOfLines={2}>{item.title}</Text>
-                <Text style={styles.listSubtitle}>{item.source.name}</Text>
-
-                {/* Time & Icons */}
-                <View style={styles.timeRow}>
-                  <FontAwesome5 name="business-time" size={16} color="black" />
-                  <Text style={styles.listTime}>{new Date(item.publishedAt).toLocaleTimeString()}</Text>
-                  <View style={styles.iconRow}>
-                    <Bookmark size={18} color="gray" />
-                    <Share2 size={18} color="gray" style={{ marginLeft: 8 }} />
-                  </View>
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <FlatList
+  data={sportsNews.slice(0, 3)}  // Show only 3 posts
+  keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
+  renderItem={renderNewsItem}
+  showsVerticalScrollIndicator={false}  // Hide scrollbar
+/>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  sectionContainer: { marginBottom: 20, paddingHorizontal: 10, backgroundColor: '#f0f2f0' },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginLeft: 8 },
-  seeAll: { fontSize: 14, color: '#000', fontWeight: 'bold', backgroundColor: "#d4d6d9", padding: 6, borderRadius: 10 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 20, marginBottom: 10 },
-  
-  listItem: { flexDirection: 'row', padding: 10, backgroundColor: '#f0f2f0', marginBottom: 10 },
-  listImage: { width: 140, height: 100, marginRight: 10 },
-  listTextContainer: { flex: 1 },
-  listTitle: { fontSize: 14, fontWeight: 'bold', color: '#000' },
-  listSubtitle: { fontSize: 12, color: 'gray', marginTop: 5 },
+  sectionContainer: {
+    paddingHorizontal: 15,
+    paddingBottom: 15,
+    backgroundColor: '#F9F9F9'
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 8,
+    color: '#333'
+  },
+  seeAll: {
+    fontSize: 14, color: '#bf272a', fontWeight: 'bold', backgroundColor: "#d4d6d9", paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, marginRight: 7 
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 15
+  },
 
-  timeRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
-  listTime: { fontSize: 12, color: 'black', marginLeft: 5 },
-  iconRow: { flexDirection: 'row', marginLeft: 'auto' },
+  // Card Styling
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    
+    marginBottom: 12,
+    padding: 10,
+    alignItems: 'center'
+  },
+  cardImage: {
+    width: 120,
+    height: 90,
+    // borderRadius: 8,
+    marginRight: 10
+  },
+  cardTextContainer: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#222'
+  },
+  cardSubtitle: {
+    fontSize: 13,
+    color: 'gray',
+    marginVertical: 5
+  },
+  iconRow: {
+    flexDirection: 'row',
+    marginTop: 8
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
+  cardSubtitle: {
+    fontSize: 12,
+    color: 'gray',
+    marginLeft: 5,  // Space between icon and text
+  },
+  
+  iconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  
 });
 
 export default SportsSection;

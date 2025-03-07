@@ -1,6 +1,6 @@
 import React from 'react';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import NewsDetailScreen from '../screens/NewsDetailsScreen';
 import BottomTabNavigator from './BottomTabNavigator';
 import SportsScreen from '../screens/SportsScreen';
@@ -9,38 +9,28 @@ import EntertainmentScreen from '../screens/EntertainmentScreen';
 
 const Drawer = createDrawerNavigator();
 
+// Custom Header with Logo
 const CustomHeaderTitle = () => (
-  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Image
-      source={require('../assets/sun-logo.png')} // Adjust the path to your image
-      style={styles.logo}
-    />
-    <Text style={{ fontSize: 30, fontWeight: 'bold', color: 'white', fontFamily: 'Roboto-Bold', marginLeft: 10 }}>
-      SUN NEWS
-    </Text>
+  <View style={styles.headerContainer}>
+    <Image source={require('../assets/sun-logo.png')} style={styles.logo} />
+    <Text style={styles.headerTitle}>SUN NEWS</Text>
   </View>
 );
 
 // Custom Drawer Content
 const CustomDrawerContent = (props) => {
   return (
-    <DrawerContentScrollView {...props}>
+    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContainer}>
+      {/* Logo & App Title */}
       <View style={styles.drawerHeader}>
-        <Image
-          source={require('../assets/sun-logo.png')} // Adjust the path to your image
-          style={styles.logo}
-        />
+        <Image source={require('../assets/sun-logo.png')} style={styles.drawerLogo} />
         <Text style={styles.drawerTitle}>SUN NEWS</Text>
       </View>
 
-      <DrawerItemList {...props} />
-
-      <DrawerItem
-        label="Logout"
-        onPress={() => console.log('Logout Pressed')}
-        labelStyle={styles.logoutLabel}
-        style={styles.logoutButton}
-      />
+      {/* Drawer Items */}
+      <View style={styles.drawerItemsContainer}>
+        <DrawerItemList {...props} />
+      </View>
     </DrawerContentScrollView>
   );
 };
@@ -51,58 +41,71 @@ const DrawerNavigator = () => {
       initialRouteName="Home"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
-        headerTitle: () => <CustomHeaderTitle />,  // ✅ Custom title "Sun News"
-        headerStyle: { backgroundColor: '#BF272a' }, // ✅ Red background
-        headerTitleAlign: 'center', // ✅ Centered title
-        headerTintColor: 'white', // ✅ White text color
+        headerTitle: () => <CustomHeaderTitle />,
+        headerStyle: { backgroundColor: '#BF272a' },
+        headerTitleAlign: 'center',
+        headerTintColor: 'white',
+        drawerStyle: { backgroundColor: '#1E1E2D' }, // Beautiful dark background
+        drawerActiveBackgroundColor: '#BF272a',
+        drawerActiveTintColor: 'white',
+        drawerInactiveTintColor: '#CCCCCC',
+        drawerLabelStyle: { fontSize: 16, fontWeight: 'bold' },
       }}
     >
-      {/* Hidden News Detail Screen (Not in Drawer) */}
-      <Drawer.Screen
-        name="NewsDetail"
-        component={NewsDetailScreen}
-        options={{ drawerLabel: () => null, title: '' }}
-      />
-
-      {/* Main Screens */}
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
       <Drawer.Screen name="Sports" component={SportsScreen} />
       <Drawer.Screen name="Business" component={BusinessScreen} />
       <Drawer.Screen name="Entertainment" component={EntertainmentScreen} />
+      <Drawer.Screen name="NewsDetail" component={NewsDetailScreen} options={{ drawerLabel: () => null, title: '' }} />
     </Drawer.Navigator>
   );
 };
 
 // Styles
 const styles = StyleSheet.create({
-  drawerHeader: {
-    padding: 20,
-    alignItems: 'center',
-    backgroundColor: '#BF272a',
+  drawerContainer: {
+    flex: 1,
   },
-  logo: {
-    width: 40, // Adjust the size as needed
-    height: 45, // Adjust the size as needed
-    resizeMode: 'contain', 
-    borderWidth: 1,
-    borderColor: '#fff',
-    
+  drawerHeader: {
+    paddingVertical: 30,
+    alignItems: 'center',
+    backgroundColor: '#1E1E2D',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 10,
+  },
+  drawerLogo: {
+    width: 160,
+    height: 160,
+    resizeMode: 'contain',
   },
   drawerTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
-    marginTop: 10,
+    marginTop: 8,
   },
-  logoutButton: {
-    marginTop: 20,
-    backgroundColor: '#BF272a',
-    borderRadius: 5,
-    marginHorizontal: 10,
+  drawerItemsContainer: {
+    flex: 1,
+    paddingHorizontal: 10,
   },
-  logoutLabel: {
-    color: 'white',
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 40,
+    height: 45,
+    resizeMode: 'contain',
+    borderWidth: 1,
+    borderColor: 'white'
+  },
+  headerTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
+    color: 'white',
+    fontFamily: 'Roboto-Bold',
+    marginLeft: 10,
   },
 });
 
