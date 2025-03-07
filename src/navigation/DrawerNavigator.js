@@ -16,7 +16,7 @@ const CustomHeaderTitle = () => (
       style={styles.logo}
     />
     <Text style={{ fontSize: 30, fontWeight: 'bold', color: 'white', fontFamily: 'Roboto-Bold', marginLeft: 10 }}>
-      Sun News HD
+      SUN NEWS
     </Text>
   </View>
 );
@@ -30,7 +30,7 @@ const CustomDrawerContent = (props) => {
           source={require('../assets/sun-logo.png')} // Adjust the path to your image
           style={styles.logo}
         />
-        <Text style={styles.drawerTitle}>Sun News HD</Text>
+        <Text style={styles.drawerTitle}>SUN NEWS</Text>
       </View>
 
       <DrawerItemList {...props} />

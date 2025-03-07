@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
+import { decode } from 'html-entities'; // Import for HTML decoding
 
 const NewsDetailsScreen = ({ route }) => {
-  const news = route?.params?.news; // Use optional chaining to avoid errors
+  const news = route?.params?.news; 
 
   if (!news) {
     return (
@@ -14,9 +15,9 @@ const NewsDetailsScreen = ({ route }) => {
 
   const imageUrl = news.image ? { uri: news.image } : require('../assets/notfound.png');
 
-  // Clean content (remove API's truncation message)
-  const fullContent = news.content ? news.content.replace(/\[\+\d+ chars\]/, '') : '';
-  const completeText = `${news.description || ''}\n\n${fullContent}`;
+  // Clean and decode content
+  const fullContent = news.content ? decode(news.content.replace(/\[\+\d+ chars\]/, '')) : '';
+  const completeText = decode(`${news.description || ''}\n\n${fullContent}`);
 
   return (
     <ScrollView style={styles.container}>

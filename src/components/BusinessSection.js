@@ -2,47 +2,54 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { Bookmark, Share2 } from 'lucide-react-native';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
+import { decode } from 'html-entities'; // Import for decoding HTML entities
 
 const BusinessSection = ({ navigation }) => {
   const [businessNews, setBusinessNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_KEY = 'bbe5db179a879d4cfae24f37b9b3c1be'; // Your API Key
+  const fetchNews = async () => {
+    try {
+      const response = await axios.get(
+        'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=19&_embed'
+      );
+      setBusinessNews(response.data);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchNews = async () => { 
-      try {
-        const response = await axios.get(
-          `https://gnews.io/api/v4/search?q=business&token=${API_KEY}&lang=en&max=10`
-        );
-        setBusinessNews(response.data.articles);
-      } catch (error) {
-        console.error('Error fetching news:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNews();
   }, []);
 
   const renderNewsItem = ({ item }) => {
-    const imageUrl = item.image ? { uri: item.image } : require('../assets/notfound.png'); 
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
 
     return (
       <TouchableOpacity 
         style={styles.card}
-        onPress={() => navigation.navigate('NewsDetails', { news: item })} // ✅ Pass news item
+        onPress={() => navigation.navigate('NewsDetails', { 
+          news: {
+            title: decode(item.title.rendered),
+            content: decode(item.content.rendered),
+            description: decode(item.excerpt.rendered),
+            image: imageUrl,
+            source: { name: 'Sun News' },
+            publishedAt: item.date
+          }
+        })}
       >
         <Image 
-          source={imageUrl} 
+          source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} 
           style={styles.cardImage} 
-          defaultSource={require('../assets/notfound.png')}
         />
         <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle} numberOfLines={3}>{item.title}</Text>
-          <Text style={styles.cardSubtitle}>{item.source.name} • {new Date(item.publishedAt).toDateString()}</Text>
+          <Text style={styles.cardTitle} numberOfLines={3}>{decode(item.title.rendered)}</Text>
+          <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
         </View>
         <View style={styles.iconRow}>
           <Bookmark size={16} color="gray" />
@@ -58,7 +65,6 @@ const BusinessSection = ({ navigation }) => {
 
   return (
     <View style={styles.sectionContainer}>
-      {/* Business Section Header */}
       <View style={styles.categoryContainer}>
         <View style={styles.headerRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -70,11 +76,10 @@ const BusinessSection = ({ navigation }) => {
           </TouchableOpacity>
         </View>
         
-        {/* News List */}
         <FlatList
-          data={businessNews.slice(0, 5)}
+          data={businessNews.slice(0, 8)}
           horizontal
-          keyExtractor={(item, index) => index.toString()}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderNewsItem}
           showsHorizontalScrollIndicator={false}
           nestedScrollEnabled={true}
