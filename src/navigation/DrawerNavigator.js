@@ -10,8 +10,14 @@ import EntertainmentScreen from '../screens/EntertainmentScreen';
 const Drawer = createDrawerNavigator();
 
 const CustomHeaderTitle = () => (
-  <View>
-    <Text style={{ fontSize: 30, fontWeight: 'bold', color: 'white', fontFamily: 'Roboto-Bold' }}>Sun News</Text>
+  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <Image
+      source={require('../assets/sun-logo.png')} // Adjust the path to your image
+      style={styles.logo}
+    />
+    <Text style={{ fontSize: 30, fontWeight: 'bold', color: 'white', fontFamily: 'Roboto-Bold', marginLeft: 10 }}>
+      Sun News HD
+    </Text>
   </View>
 );
 
@@ -20,8 +26,11 @@ const CustomDrawerContent = (props) => {
   return (
     <DrawerContentScrollView {...props}>
       <View style={styles.drawerHeader}>
-       
-        <Text style={styles.drawerTitle}>Sun News</Text>
+        <Image
+          source={require('../assets/sun-logo.png')} // Adjust the path to your image
+          style={styles.logo}
+        />
+        <Text style={styles.drawerTitle}>Sun News HD</Text>
       </View>
 
       <DrawerItemList {...props} />
@@ -72,12 +81,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#BF272a',
   },
   logo: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 40, // Adjust the size as needed
+    height: 45, // Adjust the size as needed
+    resizeMode: 'contain', 
+    borderWidth: 1,
+    borderColor: '#fff',
+    
   },
   drawerTitle: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
     marginTop: 10,

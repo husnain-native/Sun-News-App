@@ -1,30 +1,50 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ScrollView } from 'react-native';
-import BusinessEntertainmentSection from '../components/BusinessEntertainmentSection';
+import { View, Text, Image, ScrollView, StyleSheet } from 'react-native';
 
-const NewsDetailScreen = ({ route }) => {
-  const { news } = route.params;
-  console.log(news); // Log the news object to inspect its structure
+const NewsDetailsScreen = ({ route }) => {
+  const news = route?.params?.news; // Use optional chaining to avoid errors
+
+  if (!news) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No news data available.</Text>
+      </View>
+    );
+  }
+
+  const imageUrl = news.image ? { uri: news.image } : require('../assets/notfound.png');
+
+  // Clean content (remove API's truncation message)
+  const fullContent = news.content ? news.content.replace(/\[\+\d+ chars\]/, '') : '';
+  const completeText = `${news.description || ''}\n\n${fullContent}`;
 
   return (
     <ScrollView style={styles.container}>
-      <Image source={news.image} style={styles.image} />
+      {/* News Image */}
+      <Image source={imageUrl} style={styles.newsImage} />
+
+      {/* News Title */}
       <Text style={styles.title}>{news.title}</Text>
-      <Text style={styles.source}>{news.source} • {news.time}</Text>
-      <Text style={styles.content}>
-        {news.content}
+
+      {/* Source & Date */}
+      <Text style={styles.source}>
+        {news.source?.name || 'Unknown Source'} • {news.publishedAt ? new Date(news.publishedAt).toDateString() : 'Unknown Date'}
       </Text>
 
+      {/* Full News Content */}
+      <Text style={styles.content}>{completeText || 'Full content is not available.'}</Text>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10, backgroundColor: '#fff' },
-  image: { width: '100%', height: 200, borderRadius: 10 },
-  title: { fontSize: 22, fontWeight: 'bold', marginTop: 10 },
-  source: { fontSize: 14, color: 'black', marginBottom: 10 },
-  content: { fontSize: 16, lineHeight: 24, marginBottom: 15 },
+  container: { flex: 1, padding: 15, backgroundColor: '#fff' },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { fontSize: 18, color: 'red', fontWeight: 'bold' },
+  newsImage: { width: '100%', height: 200, borderRadius: 10, marginBottom: 15 },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
+  source: { fontSize: 14, color: 'gray', marginBottom: 10 },
+  content: { fontSize: 16, lineHeight: 24, marginBottom: 20 },
 });
 
-export default NewsDetailScreen;
+export default NewsDetailsScreen;

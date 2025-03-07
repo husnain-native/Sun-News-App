@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
+import { Bookmark, Share2 } from 'lucide-react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const API_KEY = 'da3704a65f404b3da127339011223fd4'; // 🔹 Replace this with your actual API key
-const BUSINESS_NEWS_URL = `https://newsapi.org/v2/top-headlines?category=business&country=us&apiKey=${API_KEY}`;
+const API_KEY = 'bbe5db179a879d4cfae24f37b9b3c1be';
+const BUSINESS_NEWS_URL = `https://gnews.io/api/v4/search?q=business&token=${API_KEY}&lang=en&max=10`;
 
 const BusinessScreen = ({ navigation }) => {
   const [businessNews, setBusinessNews] = useState([]);
@@ -25,28 +27,45 @@ const BusinessScreen = ({ navigation }) => {
     fetchBusinessNews();
   }, []);
 
-  const renderNewsItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.newsCard} 
-      onPress={() => navigation.navigate('NewsDetail', { news: item })}
-    >
-      <Image 
-        source={{ uri: item.urlToImage || 'https://via.placeholder.com/300' }}  
-        style={styles.newsImage} 
-      />
-      <Text style={styles.newsTitle}>{item.title}</Text>
-      <Text style={styles.newsSource}>
-        {item.source.name || 'Unknown Source'} • {new Date(item.publishedAt).toDateString()}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderNewsItem = ({ item }) => {
+    const imageUrl = item.image ? { uri: item.image } : require('../assets/notfound.png');
 
-  if (loading) return <ActivityIndicator size="large" color="#007bff" style={styles.loader} />;
+    return (
+      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('NewsDetail', { news: item })}>
+        <Image source={imageUrl} style={styles.cardImage} />
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+        </View>
+        <View style={styles.iconRow}>
+          <View style={styles.sourceInfo}>
+            <Text style={styles.cardSubtitle}>{item.source.name}</Text>
+            <Text style={styles.cardSubtitle}>{new Date(item.publishedAt).toDateString()}</Text>
+          </View>
+          <View style={styles.iconGroup}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Bookmark size={20} color="#BF272a" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Share2 size={20} color="#BF272a" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
   if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Business News</Text>
+      <View style={styles.headerRow}>
+        <MaterialIcons name="business" size={34} color="#BF272a" />
+        <View style={styles.titleContainer}>
+          <Text style={styles.sectionTitle}>BUSINESS NEWS</Text>
+          <View style={styles.underline} />
+        </View>
+      </View>
       <FlatList
         data={businessNews}
         keyExtractor={(item, index) => index.toString()}
@@ -58,12 +77,46 @@ const BusinessScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 10 },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 10 },
-  newsCard: { marginBottom: 15 },
-  newsImage: { width: '100%', height: 180, borderRadius: 10 },
-  newsTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 5 },
-  newsSource: { fontSize: 12, color: 'gray' },
+  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginStart: 5, padding: 10, color: '#333' },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, marginStart: 14, borderRadius: 100 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 15 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    paddingBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+  cardTextContainer: { padding: 12 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  cardSubtitle: { fontSize: 14, color: '#666', marginTop: 2 },
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+  sourceInfo: {
+    flexDirection: 'column',
+  },
+  iconGroup: {
+    flexDirection: 'row',
+  },
+  iconButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    marginLeft: 10,
+  },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 },
 });
