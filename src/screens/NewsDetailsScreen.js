@@ -18,7 +18,11 @@ const NewsDetailsScreen = ({ route }) => {
   const imageUrl = news.image ? { uri: news.image } : require('../assets/notfound.png');
 
   // Remove extra text like "[+123 chars]" from content
-  const fullContent = news.content ? news.content.replace(/\[\+\d+ chars\]/, '') : '';
+  const fullContent = news.content && typeof news.content === 'string' 
+  ? news.content.replace(/\[\+\d+ chars\]/, '') 
+  : '<p>No content available.</p>';
+
+
 
   // Only use full content (NO description to avoid duplication)
   const completeText = fullContent;

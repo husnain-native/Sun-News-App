@@ -4,8 +4,7 @@ import axios from 'axios';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const API_KEY = 'your_api_key_here';
-const ENTERTAINMENT_NEWS_URL = `https://gnews.io/api/v4/search?q=entertainment&token=${API_KEY}&lang=en&max=10`;
+const ENTERTAINMENT_NEWS_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed'; // Adjust category ID
 
 const EntertainmentScreen = ({ navigation }) => {
   const [entertainmentNews, setEntertainmentNews] = useState([]);
@@ -16,7 +15,7 @@ const EntertainmentScreen = ({ navigation }) => {
     const fetchEntertainmentNews = async () => {
       try {
         const response = await axios.get(ENTERTAINMENT_NEWS_URL);
-        setEntertainmentNews(response.data.articles);
+        setEntertainmentNews(response.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -28,18 +27,30 @@ const EntertainmentScreen = ({ navigation }) => {
   }, []);
 
   const renderNewsItem = ({ item }) => {
-    const imageUrl = item.image ? { uri: item.image } : require('../assets/notfound.png');
+    const title = item.title.rendered;
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+    const date = new Date(item.date).toDateString();
 
     return (
-      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('NewsDetail', { news: item })}>
-        <Image source={imageUrl} style={styles.cardImage} />
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={() => navigation.navigate('NewsDetail', { 
+          news: { 
+            title: item.title.rendered, 
+            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
+            content: item.content?.rendered ?? '<p>No content available.</p>',
+            source: { name: 'Sun News' }, 
+            publishedAt: item.date
+          } 
+        })}
+      >
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+          <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </View>
         <View style={styles.iconRow}>
           <View style={styles.sourceInfo}>
-            <Text style={styles.cardSubtitle}>{item.source.name}</Text>
-            <Text style={styles.cardSubtitle}>{new Date(item.publishedAt).toDateString()}</Text>
+            <Text style={styles.cardSubtitle}>{date}</Text>
           </View>
           <View style={styles.iconGroup}>
             <TouchableOpacity style={styles.iconButton}>

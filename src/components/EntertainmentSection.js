@@ -3,57 +3,63 @@ import { View, Text, FlatList, TouchableOpacity, Image, StyleSheet, ActivityIndi
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import axios from 'axios';
+import { decode } from 'html-entities'; // Import for decoding HTML entities
 
 const EntertainmentSection = ({ navigation }) => {
   const [entertainmentNews, setEntertainmentNews] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_KEY = 'da3704a65f404b3da127339011223fd4'; // Replace with a valid API key
-  const defaultImage = require('../assets/notfound.png'); // ✅ Import the default image
+  const fetchEntertainmentNews = async () => {
+    try {
+      const response = await axios.get(
+        'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed' // Change category ID to Entertainment
+      );
+      setEntertainmentNews(response.data);
+    } catch (error) {
+      console.error('Error fetching entertainment news:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchEntertainmentNews = async () => {
-      try {
-        const response = await axios.get(
-          `https://newsapi.org/v2/top-headlines?category=entertainment&country=us&apiKey=${API_KEY}`
-        );
-        setEntertainmentNews(response.data.articles || []);
-      } catch (error) {
-        console.error('Error fetching entertainment news:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchEntertainmentNews();
   }, []);
 
-  const renderNewsItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.card}
-      onPress={() => {
-        console.log('Navigating to NewsDetails with:', item);
-        navigation.navigate('NewsDetails', { news: item });
-      }}
+  const renderNewsItem = ({ item }) => {
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
 
-    >
-      <View style={styles.row}>
-        <Image 
-          source={item.urlToImage ? { uri: item.urlToImage } : defaultImage} 
-          style={styles.cardImage} 
-          onError={() => defaultImage} // ✅ Fallback to 'notfound.png' if image fails to load
-        />
-        <View style={styles.cardContent}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-          <Text style={styles.cardSubtitle}>{item.source.name} • {new Date(item.publishedAt).toDateString()}</Text>
+    return (
+      <TouchableOpacity 
+        style={styles.card}
+        onPress={() => navigation.navigate('NewsDetails', { 
+          news: {
+            title: decode(item.title.rendered),
+            content: decode(item.content.rendered),
+            description: decode(item.excerpt.rendered),
+            image: imageUrl,
+            source: { name: 'Sun News' },
+            publishedAt: item.date
+          }
+        })}
+      >
+        <View style={styles.row}>
+          <Image 
+            source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} 
+            style={styles.cardImage} 
+          />
+          <View style={styles.cardContent}>
+            <Text style={styles.cardTitle} numberOfLines={2}>{decode(item.title.rendered)}</Text>
+            <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.iconRow}>
-        <Bookmark size={16} color="gray" />
-        <Share2 size={16} color="gray" style={{ marginLeft: 10 }} />
-      </View>
-    </TouchableOpacity>
-  );
+        <View style={styles.iconRow}>
+          <Bookmark size={16} color="gray" />
+          <Share2 size={16} color="gray" style={{ marginLeft: 10 }} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -71,10 +77,11 @@ const EntertainmentSection = ({ navigation }) => {
         <ActivityIndicator size="large" color="#BF272a" />
       ) : (
         <FlatList
-          data={entertainmentNews.slice(0, 3)} // Show only 3 news items
-          keyExtractor={(item, index) => index.toString()}
+          data={entertainmentNews.slice(0, 3)}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={renderNewsItem}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={false} // Hide vertical scrollbar
+          nestedScrollEnabled={true} // Helps with smooth scrolling inside nested views
         />
       )}
     </View>

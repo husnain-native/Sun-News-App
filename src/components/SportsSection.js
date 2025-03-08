@@ -51,12 +51,12 @@ const SportsSection = ({ navigation }) => {
           <Text style={styles.cardTitle} numberOfLines={3}>{decode(item.title.rendered)}</Text>
           <View style={styles.bottomRow}>
   <View style={styles.dateContainer}>
-    <MaterialCommunityIcons name="calendar" size={16} color="gray" />
+    <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" />
     <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
   </View>
   <View style={styles.iconRow}>
-    <Bookmark size={20} color="gray" />
-    <Share2 size={20} color="gray" style={{ marginLeft: 12 }} />
+    <Bookmark size={20} color="#bf272a" />
+    <Share2 size={20} color="#bf272a" style={{ marginLeft: 12 }} />
   </View>
 </View>
 
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   // Card Styling
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: '#F9F9F9',
     borderRadius: 10,
     
     marginBottom: 12,

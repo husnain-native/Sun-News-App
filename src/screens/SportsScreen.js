@@ -1,24 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Bookmark, Share2 } from 'lucide-react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 
-const API_KEY = 'da3704a65f404b3da127339011223fd4'; // Replace with a valid API key
-const DEFAULT_IMAGE = 'https://via.placeholder.com/150'; // Fallback image
+const SPORTS_NEWS_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed';
 
 const SportsScreen = ({ navigation }) => {
   const [sportsNews, setSportsNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchSportsNews = async () => {
       try {
-        const response = await axios.get(
-          `https://newsapi.org/v2/top-headlines?category=sports&country=us&apiKey=${API_KEY}`
-        );
-        setSportsNews(response.data.articles || []);
-      } catch (error) {
-        console.error('Error fetching sports news:', error);
+        const response = await axios.get(SPORTS_NEWS_URL);
+        setSportsNews(response.data); // Fixed API response handling
+      } catch (err) {
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -27,55 +26,110 @@ const SportsScreen = ({ navigation }) => {
     fetchSportsNews();
   }, []);
 
-  const renderNewsItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.card}
-      onPress={() => navigation.navigate('NewsDetails', { news: item })}
-    >
-      <Image 
-        source={{ uri: item.urlToImage ? item.urlToImage : DEFAULT_IMAGE }} 
-        style={styles.cardImage} 
-      />
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={2}>
-          {item.title || 'No Title Available'}
-        </Text>
-        <Text style={styles.cardSubtitle}>
-          {item.source?.name || 'Unknown Source'} • {item.publishedAt ? new Date(item.publishedAt).toDateString() : 'No Date'}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderNewsItem = ({ item }) => {
+    const title = item.title.rendered;
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+    const date = new Date(item.date).toDateString();
+
+    return (
+      <TouchableOpacity 
+        style={styles.card} 
+        onPress={() => navigation.navigate('NewsDetail', { 
+          news: { 
+            title: item.title.rendered, 
+            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
+            content: item.content?.rendered ?? '<p>No content available.</p>', 
+            source: { name: 'Sun News' }, 
+            publishedAt: item.date
+          } 
+        })}
+      >
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
+        </View>
+        <View style={styles.iconRow}>
+          <View style={styles.sourceInfo}>
+            <Text style={styles.cardSubtitle}>{date}</Text>
+          </View>
+          <View style={styles.iconGroup}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Bookmark size={20} color="#BF272a" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Share2 size={20} color="#BF272a" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
+  if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <MaterialCommunityIcons name="football" size={35} color="#BF272a" />
-        <Text style={styles.header}>Sports News</Text>
+        <MaterialIcons name="sports-soccer" size={34} color="#BF272a" />
+        <View style={styles.titleContainer}>
+          <Text style={styles.sectionTitle}>SPORTS NEWS</Text>
+          <View style={styles.underline} />
+        </View>
       </View>
-      {loading ? (
-        <ActivityIndicator size="large" color="#BF272a" />
-      ) : (
-        <FlatList
-          data={sportsNews}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={renderNewsItem}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+      <FlatList
+        data={sportsNews}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={renderNewsItem}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 15, backgroundColor: '#fff' },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
-  header: { fontSize: 22, fontWeight: 'bold', marginLeft: 10 },
-  card: { backgroundColor: '#f5f5f5', borderRadius: 10, padding: 10, marginBottom: 10, flexDirection: 'row' },
-  cardImage: { width: 100, height: 100, borderRadius: 10, marginRight: 10 },
-  cardContent: { flex: 1 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#000' },
-  cardSubtitle: { fontSize: 12, color: 'gray', marginTop: 3 },
+  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginStart: 5, padding: 10, color: '#333' },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, marginStart: 14, borderRadius: 100 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 15 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    paddingBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 3,
+    overflow: 'hidden',
+  },
+  cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+  cardTextContainer: { padding: 12 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  cardSubtitle: { fontSize: 14, color: '#666', marginTop: 2 },
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+  },
+  sourceInfo: {
+    flexDirection: 'column',
+  },
+  iconGroup: {
+    flexDirection: 'row',
+  },
+  iconButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    marginLeft: 10,
+  },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 },
 });
 
 export default SportsScreen;
