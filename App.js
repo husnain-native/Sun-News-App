@@ -9,6 +9,8 @@ const AppNavigator = () => {
       <DrawerNavigator>
         <BottomTabNavigator />
       </DrawerNavigator>
+
+
     </NavigationContainer>
   );
 };

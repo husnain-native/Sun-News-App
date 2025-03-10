@@ -2,10 +2,10 @@ import React from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import NewsDetailScreen from '../screens/NewsDetailsScreen';
-import BottomTabNavigator from './BottomTabNavigator';
 import SportsScreen from '../screens/SportsScreen';
 import BusinessScreen from '../screens/BusinessScreen';
 import EntertainmentScreen from '../screens/EntertainmentScreen';
+import BottomTabNavigator from './BottomTabNavigator'; // Ensure Bottom Tabs are used
 
 const Drawer = createDrawerNavigator();
 
@@ -38,14 +38,13 @@ const CustomDrawerContent = (props) => {
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
-      initialRouteName="Home"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerTitle: () => <CustomHeaderTitle />,
         headerStyle: { backgroundColor: '#BF272a' },
         headerTitleAlign: 'center',
         headerTintColor: 'white',
-        drawerStyle: { backgroundColor: '#1E1E2D' }, // Beautiful dark background
+        drawerStyle: { backgroundColor: '#1E1E2D' },
         drawerActiveBackgroundColor: '#BF272a',
         drawerActiveTintColor: 'white',
         drawerInactiveTintColor: '#CCCCCC',
@@ -56,7 +55,12 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="Sports" component={SportsScreen} />
       <Drawer.Screen name="Business" component={BusinessScreen} />
       <Drawer.Screen name="Entertainment" component={EntertainmentScreen} />
-      <Drawer.Screen name="NewsDetail" component={NewsDetailScreen} options={{ drawerLabel: () => null, title: '' }} />
+      {/* Ensure NewsDetailScreen is accessible but hidden from Drawer */}
+      <Drawer.Screen 
+        name="NewsDetail" 
+        component={NewsDetailScreen} 
+        options={{ drawerLabel: () => null, title: 'News Details' }} 
+      />
     </Drawer.Navigator>
   );
 };
@@ -98,7 +102,7 @@ const styles = StyleSheet.create({
     height: 45,
     resizeMode: 'contain',
     borderWidth: 1,
-    borderColor: 'white'
+    borderColor: 'white',
   },
   headerTitle: {
     fontSize: 24,

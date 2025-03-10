@@ -16,6 +16,7 @@ const HomeScreen = ({ navigation }) => {
           key: 'latestNews',
           component: (
             <View>
+              <CategoryNavigation />
               {/* ✅ Category Navigation under Latest News Section */}
               <LatestNews
                 navigation={navigation}
@@ -25,7 +26,6 @@ const HomeScreen = ({ navigation }) => {
                   ...newsData.Entertainment ? newsData.Entertainment.slice(0, 1) : [],
                 ]}
               />
-                <CategoryNavigation />
             </View>
           ),
         },
