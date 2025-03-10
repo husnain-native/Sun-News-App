@@ -1,9 +1,10 @@
 import React from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
 import LatestNews from '../components/LatestNewsSection';
-import BusinessSection from '../components/BusinessSection';  // ✅ Import Business Section
-import EntertainmentSection from '../components/EntertainmentSection';  // ✅ Import Entertainment Section
-import SportsSection from '../components/SportsSection';  // ✅ Import Sports Section
+import BusinessSection from '../components/BusinessSection';
+import EntertainmentSection from '../components/EntertainmentSection';
+import SportsSection from '../components/SportsSection';
+import CategoryNavigation from '../components/CategoryNavigation'; // ✅ Import CategoryNavigation
 import { newsData } from '../data/newsData';
 
 const HomeScreen = ({ navigation }) => {
@@ -14,14 +15,18 @@ const HomeScreen = ({ navigation }) => {
         {
           key: 'latestNews',
           component: (
-            <LatestNews
-              navigation={navigation}
-              latestNews={[
-                ...newsData.Business ? newsData.Business.slice(0, 2) : [],
-                ...newsData.Sports ? newsData.Sports.slice(0, 2) : [],
-                ...newsData.Entertainment ? newsData.Entertainment.slice(0, 1) : [],
-              ]}
-            />
+            <View>
+              {/* ✅ Category Navigation under Latest News Section */}
+              <LatestNews
+                navigation={navigation}
+                latestNews={[
+                  ...newsData.Business ? newsData.Business.slice(0, 2) : [],
+                  ...newsData.Sports ? newsData.Sports.slice(0, 2) : [],
+                  ...newsData.Entertainment ? newsData.Entertainment.slice(0, 1) : [],
+                ]}
+              />
+                <CategoryNavigation />
+            </View>
           ),
         },
         {

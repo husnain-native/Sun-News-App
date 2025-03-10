@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Dimensions } from 'react-native';
 import axios from 'axios';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import CategoryNavigation from '../components/CategoryNavigation';
 
 const BUSINESS_NEWS_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=19&_embed';
 
@@ -27,26 +28,23 @@ const BusinessScreen = ({ navigation }) => {
   }, []);
 
   const renderNewsItem = ({ item }) => {
-    // Extracting title, image, and date from the API response
     const title = item.title.rendered;
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
     const date = new Date(item.date).toDateString();
 
     return (
       <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => navigation.navigate('NewsDetail', { 
-        news: { 
-          title: item.title.rendered, 
-          image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
-          content: item.content?.rendered ?? '<p>No content available.</p>', // Ensures content is valid
-          source: { name: 'Sun News' }, 
-          publishedAt: item.date
-        } 
-      })}
-      
-    >
-    
+        style={styles.card} 
+        onPress={() => navigation.navigate('NewsDetail', { 
+          news: { 
+            title: item.title.rendered, 
+            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
+            content: item.content?.rendered ?? '<p>No content available.</p>',
+            source: { name: 'Sun News' }, 
+            publishedAt: item.date
+          } 
+        })}
+      >
         <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
@@ -72,26 +70,43 @@ const BusinessScreen = ({ navigation }) => {
   if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <MaterialIcons name="business" size={34} color="#BF272a" />
-        <View style={styles.titleContainer}>
-          <Text style={styles.sectionTitle}>BUSINESS NEWS</Text>
-          <View style={styles.underline} />
-        </View>
+    <View style={{ flex: 1 }}>
+      {/* Category Navigation - Full Width */}
+      <View style={styles.categoryNavContainer}>
+        <CategoryNavigation />
       </View>
-      <FlatList
-        data={businessNews}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderNewsItem}
-        showsVerticalScrollIndicator={false}
-      />
+
+      {/* Business News Content */}
+      <View style={styles.container}>
+        <View style={styles.headerRow}>
+          <MaterialIcons name="business" size={34} color="#BF272a" />
+          <View style={styles.titleContainer}>
+            <Text style={styles.sectionTitle}>BUSINESS NEWS</Text>
+            <View style={styles.underline} />
+          </View>
+        </View>
+        <FlatList
+          data={businessNews}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderNewsItem}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  categoryNavContainer: {
+    width: Dimensions.get('window').width, // Ensures full width
+    backgroundColor: '#fff', // Background to match navigation
+  },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8f8f8', 
+    paddingHorizontal: 15, 
+    paddingTop: 10 
+  },
   titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', marginStart: 5, padding: 10, color: '#333' },
   underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, marginStart: 14, borderRadius: 100 },

@@ -44,11 +44,12 @@ const NewsDetailsScreen = ({ route }) => {
 
       {/* Render HTML Content */}
       <View style={styles.contentContainer}>
-        <RenderHtml
-          contentWidth={width}
-          source={{ html: completeText }}
-          tagsStyles={htmlStyles} // Apply styles for HTML content
-        />
+      {completeText ? (
+  <RenderHtml contentWidth={width} source={{ html: completeText }} />
+) : (
+  <Text>No content available.</Text>
+)}
+
       </View>
     </ScrollView>
   );
