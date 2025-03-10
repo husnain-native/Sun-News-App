@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BottomTabNavigator from './BottomTabNavigator';
 import CategoryScreen from '../screens/CategoryScreen';
@@ -20,16 +20,19 @@ const CustomHeaderTitle = () => (
 const CustomDrawerContent = (props) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await fetch(API_URL);
+        if (!response.ok) throw new Error('Failed to fetch categories');
         const data = await response.json();
         setCategories(data);
       } catch (error) {
         console.error('Error fetching categories:', error);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -47,12 +50,15 @@ const CustomDrawerContent = (props) => {
       </View>
 
       {/* Loader */}
-      {loading ? <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} /> : null}
+      {loading && <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} />}
+
+      {/* Error Message */}
+      {error && <Text style={styles.errorText}>Failed to load categories</Text>}
 
       {/* Drawer Items */}
       <View style={styles.drawerItemsContainer}>
         <DrawerItemList {...props} />
-        
+
         {/* Dynamic Categories */}
         {categories.map((category) => (
           <DrawerItem
@@ -85,9 +91,7 @@ const DrawerNavigator = () => {
       }}
     >
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
-     
-      <Drawer.Screen name="Category" component={CategoryScreen} options={{ headerShown: true }} />
-
+      <Drawer.Screen name="Category" component={CategoryScreen} options={{ headerShown: true }}  />
     </Drawer.Navigator>
   );
 };
@@ -103,16 +107,14 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     marginBottom: 10,
   },
-  
-  logo: {
-    width: 35, height: 45, resizeMode: 'contain',
-  },
+  logo: { width: 35, height: 45, resizeMode: 'contain' },
   drawerLogo: { width: 86, height: 86, resizeMode: 'contain' },
   drawerTitle: { fontSize: 40, fontWeight: 'bold', color: 'white', marginTop: 8 },
-  headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginTop: 8 , paddingLeft: 3},
+  headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginTop: 8, paddingLeft: 3 },
   drawerItemsContainer: { flex: 1, paddingHorizontal: 10 },
   drawerLabel: { fontSize: 16, fontWeight: 'bold', color: 'white' },
   headerContainer: { flexDirection: 'row', alignItems: 'center' },
+  errorText: { color: 'red', textAlign: 'center', marginVertical: 10 },
 });
 
 export default DrawerNavigator;
