@@ -1,13 +1,12 @@
-import React from 'react';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import NewsDetailScreen from '../screens/NewsDetailsScreen';
-import SportsScreen from '../screens/SportsScreen';
-import BusinessScreen from '../screens/BusinessScreen';
-import EntertainmentScreen from '../screens/EntertainmentScreen';
-import BottomTabNavigator from './BottomTabNavigator'; // Ensure Bottom Tabs are used
+import React, { useEffect, useState } from 'react';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
+import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import BottomTabNavigator from './BottomTabNavigator';
+import CategoryScreen from '../screens/CategoryScreen';
 
 const Drawer = createDrawerNavigator();
+const API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories';
 
 // Custom Header with Logo
 const CustomHeaderTitle = () => (
@@ -19,22 +18,56 @@ const CustomHeaderTitle = () => (
 
 // Custom Drawer Content
 const CustomDrawerContent = (props) => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContainer}>
-      {/* Logo & App Title */}
+      {/* App Header */}
       <View style={styles.drawerHeader}>
         <Image source={require('../assets/sun-logo.png')} style={styles.drawerLogo} />
         <Text style={styles.drawerTitle}>SUN NEWS</Text>
       </View>
 
+      {/* Loader */}
+      {loading ? <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} /> : null}
+
       {/* Drawer Items */}
       <View style={styles.drawerItemsContainer}>
         <DrawerItemList {...props} />
+        
+        {/* Dynamic Categories */}
+        {categories.map((category) => (
+          <DrawerItem
+            key={category.id}
+            label={category.name}
+            onPress={() => navigation.navigate('Category', { categoryId: category.id, categoryName: category.name })}
+            labelStyle={styles.drawerLabel}
+          />
+        ))}
       </View>
     </DrawerContentScrollView>
   );
 };
 
+// Drawer Navigator
 const DrawerNavigator = () => {
   return (
     <Drawer.Navigator
@@ -52,24 +85,16 @@ const DrawerNavigator = () => {
       }}
     >
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
-      <Drawer.Screen name="Sports" component={SportsScreen} />
-      <Drawer.Screen name="Business" component={BusinessScreen} />
-      <Drawer.Screen name="Entertainment" component={EntertainmentScreen} />
-      {/* Ensure NewsDetailScreen is accessible but hidden from Drawer */}
-      <Drawer.Screen 
-        name="NewsDetail" 
-        component={NewsDetailScreen} 
-        options={{ drawerLabel: () => null, title: 'News Details' }} 
-      />
+     
+      <Drawer.Screen name="Category" component={CategoryScreen} options={{ headerShown: true }} />
+
     </Drawer.Navigator>
   );
 };
 
 // Styles
 const styles = StyleSheet.create({
-  drawerContainer: {
-    flex: 1,
-  },
+  drawerContainer: { flex: 1 },
   drawerHeader: {
     paddingVertical: 30,
     alignItems: 'center',
@@ -78,39 +103,16 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     marginBottom: 10,
   },
-  drawerLogo: {
-    width: 160,
-    height: 160,
-    resizeMode: 'contain',
-  },
-  drawerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'white',
-    marginTop: 8,
-  },
-  drawerItemsContainer: {
-    flex: 1,
-    paddingHorizontal: 10,
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  
   logo: {
-    width: 40,
-    height: 45,
-    resizeMode: 'contain',
-    borderWidth: 1,
-    borderColor: 'white',
+    width: 35, height: 45, resizeMode: 'contain',
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    fontFamily: 'Roboto-Bold',
-    marginLeft: 10,
-  },
+  drawerLogo: { width: 86, height: 86, resizeMode: 'contain' },
+  drawerTitle: { fontSize: 40, fontWeight: 'bold', color: 'white', marginTop: 8 },
+  headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginTop: 8 , paddingLeft: 3},
+  drawerItemsContainer: { flex: 1, paddingHorizontal: 10 },
+  drawerLabel: { fontSize: 16, fontWeight: 'bold', color: 'white' },
+  headerContainer: { flexDirection: 'row', alignItems: 'center' },
 });
 
 export default DrawerNavigator;

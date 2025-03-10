@@ -14,7 +14,8 @@ const Stack = createStackNavigator();
 const HomeStackNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HomeScreen" component={HomeScreen} />
+      <Stack.Screen name="Home" component={HomeScreen} />
+
       <Stack.Screen name="NewsDetails" component={NewsDetailsScreen} />
       <Stack.Screen name="SportsScreen" component={SportsScreen} />
 
