@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';
-import { View, Text, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BottomTabNavigator from './BottomTabNavigator';
 import CategoryScreen from '../screens/CategoryScreen';
@@ -21,6 +21,7 @@ const CustomDrawerContent = (props) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [activeCategory, setActiveCategory] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -41,9 +42,14 @@ const CustomDrawerContent = (props) => {
     fetchCategories();
   }, []);
 
+  const handleCategoryPress = (category) => {
+    setActiveCategory(category.id);
+    navigation.navigate('Category', { categoryId: category.id, categoryName: category.name });
+  };
+
   return (
     <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContainer}>
-      {/* App Header */}
+      {/* Drawer Header */}
       <View style={styles.drawerHeader}>
         <Image source={require('../assets/sun-logo.png')} style={styles.drawerLogo} />
         <Text style={styles.drawerTitle}>SUN NEWS</Text>
@@ -57,15 +63,20 @@ const CustomDrawerContent = (props) => {
 
       {/* Drawer Items */}
       <View style={styles.drawerItemsContainer}>
-        <DrawerItemList {...props} />
+        <DrawerItem
+          label="Home"
+          onPress={() => navigation.navigate('Home')}
+          labelStyle={styles.drawerLabel}
+        />
 
         {/* Dynamic Categories */}
         {categories.map((category) => (
           <DrawerItem
             key={category.id}
             label={category.name}
-            onPress={() => navigation.navigate('Category', { categoryId: category.id, categoryName: category.name })}
-            labelStyle={styles.drawerLabel}
+            onPress={() => handleCategoryPress(category)}
+            labelStyle={[styles.drawerLabel, activeCategory === category.id && styles.activeCategoryLabel]}
+            style={[activeCategory === category.id && styles.activeCategoryBackground]}
           />
         ))}
       </View>
@@ -91,7 +102,7 @@ const DrawerNavigator = () => {
       }}
     >
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
-      <Drawer.Screen name="Category" component={CategoryScreen} options={{ headerShown: true }}  />
+      <Drawer.Screen name="Category" component={CategoryScreen} />
     </Drawer.Navigator>
   );
 };
@@ -110,10 +121,19 @@ const styles = StyleSheet.create({
   logo: { width: 35, height: 45, resizeMode: 'contain' },
   drawerLogo: { width: 86, height: 86, resizeMode: 'contain' },
   drawerTitle: { fontSize: 40, fontWeight: 'bold', color: 'white', marginTop: 8 },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginTop: 8, paddingLeft: 3 },
   drawerItemsContainer: { flex: 1, paddingHorizontal: 10 },
   drawerLabel: { fontSize: 16, fontWeight: 'bold', color: 'white' },
-  headerContainer: { flexDirection: 'row', alignItems: 'center' },
+  activeCategoryLabel: { color: 'white' },
+  activeCategoryBackground: {
+    backgroundColor: '#BF272a',
+    borderRadius: 5,
+  },
   errorText: { color: 'red', textAlign: 'center', marginVertical: 10 },
 });
 

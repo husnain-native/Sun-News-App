@@ -6,6 +6,7 @@ import BottomTabNavigator from './src/navigation/BottomTabNavigator'; // Import 
 import EntertainmentScreen from './screens/EntertainmentScreen';
 import SportsScreen from './screens/SportsScreen';
 import NewsDetailsScreen from './screens/NewsDetailsScreen';
+import CategoryScreen from './screens/CategoryScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,6 +24,7 @@ const AppNavigator = () => {
         <Stack.Screen name="Entertainment" component={EntertainmentScreen} />
         <Stack.Screen name="Sports" component={SportsScreen} />
         <Stack.Screen name="NewsDetail" component={NewsDetailsScreen} />
+        <Stack.Screen name="Category" component={CategoryScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
