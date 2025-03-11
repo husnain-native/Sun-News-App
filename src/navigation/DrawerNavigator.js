@@ -6,7 +6,7 @@ import BottomTabNavigator from './BottomTabNavigator';
 import CategoryScreen from '../screens/CategoryScreen';
 
 const Drawer = createDrawerNavigator();
-const API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories';
+const API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
 
 // Custom Header with Logo
 const CustomHeaderTitle = () => (

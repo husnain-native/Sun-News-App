@@ -20,11 +20,12 @@ const HomeScreen = ({ navigation }) => {
               {/* ✅ Category Navigation under Latest News Section */}
               <LatestNews
                 navigation={navigation}
-                latestNews={[
-                  ...newsData.Business ? newsData.Business.slice(0, 2) : [],
-                  ...newsData.Sports ? newsData.Sports.slice(0, 2) : [],
-                  ...newsData.Entertainment ? newsData.Entertainment.slice(0, 1) : [],
-                ]}
+              latestNews={[
+                ...(Array.isArray(newsData.Business) ? newsData.Business.slice(0, 2) : []),
+                ...(Array.isArray(newsData.Sports) ? newsData.Sports.slice(0, 2) : []),
+                ...(Array.isArray(newsData.Entertainment) ? newsData.Entertainment.slice(0, 1) : []),
+              ]}
+
               />
             </View>
           ),
