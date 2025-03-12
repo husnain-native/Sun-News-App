@@ -4,25 +4,28 @@
     "slug": "SunNews",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./src/assets/sun-logo.png",
+
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./src/assets/sun-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "pink"
+      "backgroundColor": "#bf272a"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/sun-logo.png",
+
+        "backgroundColor": "#bf272a"
       }
     },
     "web": {
-      "favicon": "../assets/sun-logo.png"
+    "favicon": "./src/assets/sun-logo.png"
+
     }
   }
 }

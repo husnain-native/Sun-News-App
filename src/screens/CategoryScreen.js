@@ -10,7 +10,7 @@ import CategoryNavigation from '../components/CategoryNavigation';
 
 const CategoryScreen = () => {
   const route = useRoute();
- // const navigation = useNavigation();
+//  const navigation = useNavigation();
   const { categoryId, categoryName, navigation } = route.params || {};
 
   const [posts, setPosts] = useState([]);
@@ -53,13 +53,13 @@ const CategoryScreen = () => {
                    title: (item.title.rendered),
                    content: (item.content.rendered),
                    description: (item.excerpt.rendered),
-                   image: imageUrl,
+                   image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, // manually
                    source: { name: 'Sun News' },
                    publishedAt: item.date
                  }
                })} // Corrected screen name
       >
-        <Image source={imageUrl} style={styles.cardImage} />
+        <Image source={{ uri: imageUrl}} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </View>

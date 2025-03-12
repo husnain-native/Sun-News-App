@@ -28,8 +28,11 @@ const NewsDetailsScreen = ({ route }) => {
   const completeText = fullContent;
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={{flex: 1, backgroundColor: '#F8F9FA'}}>
+
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* News Image with Shadow */}
+      
       <View style={styles.imageContainer}>
         <Image source={imageUrl} style={styles.newsImage} />
       </View>
@@ -44,14 +47,35 @@ const NewsDetailsScreen = ({ route }) => {
 
       {/* Render HTML Content */}
       <View style={styles.contentContainer}>
-      {completeText ? (
-  <RenderHtml contentWidth={width} source={{ html: completeText }} />
-) : (
-  <Text>No content available.</Text>
-)}
+  {completeText ? (
+    <RenderHtml
+      contentWidth={width}
+      source={{ html: completeText }}
+      tagsStyles={{
+        img: {
+          alignSelf: 'center',  // Center the image
+          marginHorizontal: 10,   // Add vertical spacing
+          maxWidth: '100%',     // Ensure it doesn't exceed the container width
+          width: '80%',        // Force full width
+          height: 250,       // Maintain aspect ratio
+          resizeMode: 'contain',
+          borderRadius: 10
+        },
+        p: { fontSize: 16, color: '#343A40', lineHeight: 24 },
+        strong: { fontWeight: 'bold', color: '#212529' },
+        a: { color: '#007BFF', textDecorationLine: 'underline' },
+      }}
+      ignoredDomTags={['iframe']} // Remove iframe if any
+      defaultTextProps={{ selectable: true }} // Make text selectable
+    />
+  ) : (
+    <Text>No content available.</Text>
+  )}
+</View>
 
-      </View>
+
     </ScrollView>
+    </View>
   );
 };
 
@@ -60,11 +84,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
+    marginHorizontal: 16,
     paddingBottom: 20,
+    
   },
   imageContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     overflow: 'hidden',
     elevation: 5, // Android Shadow
@@ -88,13 +114,13 @@ const styles = StyleSheet.create({
   },
   source: {
     fontSize: 14,
-    color: '#6C757D',
+    color: '#bf272a',
     fontWeight: '600',
     marginBottom: 12,
   },
   contentContainer: {
     backgroundColor: '#fff',
-    padding: 16,
+    padding: 8,
     borderRadius: 10,
     elevation: 3,
     shadowColor: '#000',

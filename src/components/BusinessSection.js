@@ -52,8 +52,8 @@ const BusinessSection = ({ navigation }) => {
           <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
         </View>
         <View style={styles.iconRow}>
-          <Bookmark size={16} color="gray" />
-          <Share2 size={16} color="gray" style={{ marginLeft: 8 }} />
+          <Bookmark size={20} color="#bf272a" />
+          <Share2 size={20} color="#bf272a" style={{ marginLeft: 8 }} />
         </View>
       </TouchableOpacity>
     );
