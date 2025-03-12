@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import BookmarksScreen from '../screens/BookmarksScreen'; // Import Bookmarks Screen
+
 import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BottomTabNavigator from './BottomTabNavigator';
@@ -103,6 +105,9 @@ const DrawerNavigator = () => {
     >
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
       <Drawer.Screen name="Category" component={CategoryScreen} />
+      <Drawer.Screen name="Bookmarks" component={BookmarksScreen} />
+
+
     </Drawer.Navigator>
   );
 };
