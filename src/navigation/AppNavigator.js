@@ -23,7 +23,7 @@ const AppNavigator = () => {
         {/* Other Screens */}
         <Stack.Screen name="Entertainment" component={EntertainmentScreen} />
         <Stack.Screen name="Sports" component={SportsScreen} />
-        <Stack.Screen name="NewsDetailsScreen" component={NewsDetailsScreen} />
+        <Stack.Screen name="NewsDetails" component={NewsDetailsScreen} />
 
         <Stack.Screen name="Category" component={CategoryScreen} />
       </Stack.Navigator>

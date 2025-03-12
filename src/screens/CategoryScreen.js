@@ -10,8 +10,8 @@ import CategoryNavigation from '../components/CategoryNavigation';
 
 const CategoryScreen = () => {
   const route = useRoute();
-  const navigation = useNavigation();
-  const { categoryId, categoryName } = route.params || {};
+ // const navigation = useNavigation();
+  const { categoryId, categoryName, navigation } = route.params || {};
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,15 +41,23 @@ const CategoryScreen = () => {
     if (!item || !item.id) return null;
 
     const title = item.title?.rendered || 'No Title';
-    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url
-      ? { uri: item._embedded['wp:featuredmedia'][0].source_url }
-      : require('../assets/notfound.png');
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+
     const date = new Date(item.date).toDateString();
 
     return (
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('NewsDetailsScreen', { postId: item.id })}
+        onPress={() => navigation.navigate('NewsDetails', { 
+                 news: {
+                   title: (item.title.rendered),
+                   content: (item.content.rendered),
+                   description: (item.excerpt.rendered),
+                   image: imageUrl,
+                   source: { name: 'Sun News' },
+                   publishedAt: item.date
+                 }
+               })} // Corrected screen name
       >
         <Image source={imageUrl} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>

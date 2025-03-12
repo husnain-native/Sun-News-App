@@ -1,57 +1,124 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import RenderHTML from 'react-native-render-html';
+import React from 'react';
+import { View, Text, Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 
-const NewsDetailsScreen = () => {
-  const route = useRoute();
-  const { postId } = route.params || {};
-  const [post, setPost] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+const NewsDetailsScreen = ({ route }) => {
+  const news = route?.params?.news;
+  const { width } = useWindowDimensions();
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const response = await fetch(`https://sunnewshd.tv/english/wp-json/wp/v2/posts/${postId}?_embed`);
-        const data = await response.json();
-        setPost(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+  if (!news) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No news data available.</Text>
+      </View>
+    );
+  }
 
-    if (postId) {
-      fetchPost();
-    }
-  }, [postId]);
+  // Set the image URL or use a placeholder if not available
+  const imageUrl = news.image ? { uri: news.image } : require('../assets/notfound.png');
 
-  if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
-  if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
-  if (!post) return <Text style={styles.errorText}>No content available</Text>;
+  // Remove extra text like "[+123 chars]" from content
+  const fullContent = news.content && typeof news.content === 'string' 
+  ? news.content.replace(/\[\+\d+ chars\]/, '') 
+  : '<p>No content available.</p>';
 
-  const imageUrl =
-    typeof post._embedded?.['wp:featuredmedia']?.[0]?.source_url === 'string'
-      ? { uri: post._embedded['wp:featuredmedia'][0].source_url }
-      : require('../assets/notfound.png');
+
+
+  // Only use full content (NO description to avoid duplication)
+  const completeText = fullContent;
 
   return (
     <ScrollView style={styles.container}>
-      <Image source={imageUrl} style={styles.image} />
-      <Text style={styles.title}>{post.title.rendered}</Text>
-      <RenderHTML contentWidth={300} source={{ html: post.content.rendered }} />
+      {/* News Image with Shadow */}
+      <View style={styles.imageContainer}>
+        <Image source={imageUrl} style={styles.newsImage} />
+      </View>
+
+      {/* News Title */}
+      <Text style={styles.title}>{news.title}</Text>
+
+      {/* Source & Date */}
+      <Text style={styles.source}>
+        {news.source?.name || 'Unknown Source'} • {news.publishedAt ? new Date(news.publishedAt).toDateString() : 'Unknown Date'}
+      </Text>
+
+      {/* Render HTML Content */}
+      <View style={styles.contentContainer}>
+      {completeText ? (
+  <RenderHtml contentWidth={width} source={{ html: completeText }} />
+) : (
+  <Text>No content available.</Text>
+)}
+
+      </View>
     </ScrollView>
   );
 };
 
+// **Styling for Components**
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 15 },
-  image: { width: '100%', height: 250, borderRadius: 10 },
-  title: { fontSize: 22, fontWeight: 'bold', marginVertical: 10, color: '#222' },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+  },
+  imageContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    overflow: 'hidden',
+    elevation: 5, // Android Shadow
+    shadowColor: '#000', // iOS Shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    marginBottom: 15,
+    marginTop: 15
+  },
+  newsImage: {
+    width: '100%',
+    height: 220,
+    resizeMode: 'cover',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginBottom: 8,
+  },
+  source: {
+    fontSize: 14,
+    color: '#6C757D',
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  contentContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+    fontWeight: 'bold',
+  },
 });
+
+// **Custom Styles for Rendered HTML**
+const htmlStyles = {
+  p: { fontSize: 16, color: '#343A40', lineHeight: 24 },
+  strong: { fontWeight: 'bold', color: '#212529' },
+  a: { color: '#007BFF', textDecorationLine: 'underline' },
+};
 
 export default NewsDetailsScreen;

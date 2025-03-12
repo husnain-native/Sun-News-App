@@ -41,7 +41,7 @@ const CategoryNavigation = () => {
     if (category.id === 'home') {
       navigation.navigate('Home');
     } else {
-      navigation.navigate('Category', { categoryId: category.id, categoryName: category.name });
+      navigation.navigate('Category', { categoryId: category.id, categoryName: category.name, navigation:navigation });
     }
   };
 
