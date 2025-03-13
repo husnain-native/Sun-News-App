@@ -71,7 +71,7 @@ const BookmarkScreen = ({ navigation }) => {
         </TouchableOpacity>
         <View style={styles.iconContainer}>
           <TouchableOpacity onPress={() => removeBookmark(item.id)}>
-            <FontAwesome name="bookmark" size={22} color="red" />
+            <FontAwesome name="bookmark" size={22} color="#bf272a" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => sharePost(title, item.link)}>
             <Feather name="share" size={22} color="#333" />

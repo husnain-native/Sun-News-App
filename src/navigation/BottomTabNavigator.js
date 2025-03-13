@@ -5,6 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import HomeStackNavigator from './HomeStackNavigator';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import ContactScreen from '../screens/ContactScreen';
+import PodcastScreen from '../screens/PodcastScreen ';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,6 +25,8 @@ const BottomTabNavigator = () => {
             iconName = 'bookmark';
           } else if (route.name === 'Contact') {
             iconName = 'call';
+          }else if (route.name === 'Podcast') {
+            iconName = 'mic'; // 🎙️ Microphone icon for Podcast
           }
           return (
             <View style={styles.iconContainer}>
@@ -37,6 +40,7 @@ const BottomTabNavigator = () => {
     >
       <Tab.Screen name="Home" component={HomeStackNavigator} /> 
 
+      <Tab.Screen name="Podcast" component={PodcastScreen} />
       <Tab.Screen name="Bookmarks" component={BookmarksScreen} />
       <Tab.Screen name="Contact" component={ContactScreen} />
     </Tab.Navigator>

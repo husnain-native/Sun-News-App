@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
-import BookmarksScreen from '../screens/BookmarksScreen'; // Import Bookmarks Screen
-
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import BottomTabNavigator from './BottomTabNavigator';
 import CategoryScreen from '../screens/CategoryScreen';
+import BookmarksScreen from '../screens/BookmarksScreen';
 
 const Drawer = createDrawerNavigator();
 const API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
@@ -26,27 +25,32 @@ const CustomDrawerContent = (props) => {
   const [activeCategory, setActiveCategory] = useState(null);
   const navigation = useNavigation();
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('Failed to fetch categories');
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCategories = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCategories();
   }, []);
 
   const handleCategoryPress = (category) => {
     setActiveCategory(category.id);
-    navigation.navigate('Category', { categoryId: category.id, categoryName: 'category' , navigation:navigation});
+    navigation.navigate('Category', { 
+      categoryId: category.id, 
+      categoryName: category.name
+    });
   };
 
   return (
@@ -60,8 +64,15 @@ const CustomDrawerContent = (props) => {
       {/* Loader */}
       {loading && <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} />}
 
-      {/* Error Message */}
-      {error && <Text style={styles.errorText}>Failed to load categories</Text>}
+      {/* Error Message & Retry */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Failed to load categories</Text>
+          <TouchableOpacity onPress={fetchCategories} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Drawer Items */}
       <View style={styles.drawerItemsContainer}>
@@ -106,8 +117,6 @@ const DrawerNavigator = () => {
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
       <Drawer.Screen name="Category" component={CategoryScreen} />
       <Drawer.Screen name="Bookmarks" component={BookmarksScreen} />
-
-
     </Drawer.Navigator>
   );
 };
@@ -139,7 +148,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#BF272a',
     borderRadius: 5,
   },
-  errorText: { color: 'red', textAlign: 'center', marginVertical: 10 },
+  errorContainer: { alignItems: 'center', marginVertical: 10 },
+  errorText: { color: 'red', textAlign: 'center' },
+  retryButton: { backgroundColor: 'white', padding: 6, borderRadius: 5 },
+  retryText: { color: '#BF272a', fontWeight: 'bold' },
 });
 
 export default DrawerNavigator;

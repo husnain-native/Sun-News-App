@@ -1,34 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
-  StyleSheet, ActivityIndicator, Dimensions, Share, Platform, Alert
+  StyleSheet, ActivityIndicator, Dimensions, Share, Alert
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
-import { MaterialIcons, Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
-const CategoryScreen = () => {
-  const route = useRoute();
-  const { categoryId, categoryName , navigation} = route.params || {};
+const PODCAST_CATEGORY_ID = 50;  // Replace with the actual Podcast category ID
 
-  const [posts, setPosts] = useState([]);
+const PodcastScreen = () => {
+  const navigation = useNavigation();
+  const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchPodcasts = async () => {
       try {
-        if (categoryId !== undefined && categoryId !== null) {
-          const response = await fetch(
-            `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
-          );
-          const data = await response.json();
-          setPosts(data);
-        }
+        const response = await fetch(
+          `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${PODCAST_CATEGORY_ID}&_embed`
+        );
+        const data = await response.json();
+        setPodcasts(data);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -36,9 +34,9 @@ const CategoryScreen = () => {
       }
     };
 
-    fetchPosts();
+    fetchPodcasts();
     loadBookmarkedPosts();
-  }, [categoryId]);
+  }, []);
 
   const loadBookmarkedPosts = async () => {
     try {
@@ -51,38 +49,25 @@ const CategoryScreen = () => {
     }
   };
 
-  const toggleBookmark = async (post) => {
+  const toggleBookmark = async (podcast) => {
     let updatedBookmarks = [...bookmarkedPosts];
-    const index = updatedBookmarks.findIndex(item => item.id === post.id);
+    const index = updatedBookmarks.findIndex(item => item.id === podcast.id);
     if (index !== -1) {
       updatedBookmarks.splice(index, 1);
     } else {
-      updatedBookmarks.push(post);
+      updatedBookmarks.push(podcast);
     }
     setBookmarkedPosts(updatedBookmarks);
     await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
-  const sharePost = async (title, link, image) => {
+  const sharePost = async (title, link) => {
     try {
-      const message = `${title}\nRead more: ${link}`;
-      const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
-
-      // Check if WhatsApp is installed
-      const isWhatsAppAvailable = await Linking.canOpenURL(whatsappUrl);
-      if (isWhatsAppAvailable) {
-        await Linking.openURL(whatsappUrl);
-      } else {
-        Alert.alert("WhatsApp Not Installed", "WhatsApp is not installed on this device.");
-        await Share.share({
-          message,
-          url: link,
-          title: title
-        });
-      }
+      const message = `${title}\nListen here: ${link}`;
+      await Share.share({ message, url: link, title });
     } catch (error) {
-      console.error('Error sharing post:', error.message);
-      Alert.alert("Sharing Failed", "There was an error sharing the post.");
+      console.error('Error sharing podcast:', error.message);
+      Alert.alert("Sharing Failed", "There was an error sharing the podcast.");
     }
   };
 
@@ -92,18 +77,16 @@ const CategoryScreen = () => {
     const title = item.title?.rendered || 'No Title';
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
     const date = new Date(item.date).toDateString();
-    const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
+    const isBookmarked = bookmarkedPosts.some(podcast => podcast.id === item.id);
 
     return (
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('NewsDetails', { 
-          news: {
+          podcast: {
             title: item.title.rendered,
             content: item.content.rendered,
-            description: item.excerpt.rendered,
             image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
-            source: { name: 'Sun News' },
             publishedAt: item.date
           }
         })}
@@ -113,14 +96,12 @@ const CategoryScreen = () => {
           <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </View>
         <View style={styles.iconRow}>
-          <View style={styles.sourceInfo}>
-            <Text style={styles.cardSubtitle}>{date}</Text>
-          </View>
+          <Text style={styles.cardSubtitle}>{date}</Text>
           <View style={styles.iconGroup}>
             <TouchableOpacity style={styles.iconButton} onPress={() => toggleBookmark(item)}>
               <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link, imageUrl)}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link)}>
               <Feather name="share" size={22} color="#333" />
             </TouchableOpacity>
           </View>
@@ -138,17 +119,15 @@ const CategoryScreen = () => {
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
-        
         <View style={styles.headerRow}>
-          {/* Back Button Added Here */}
-          <MaterialIcons name="category" size={34} color="#BF272a" />
+          <Ionicons name="mic-outline" size={34} color="#BF272a" />
           <View style={styles.titleContainer}>
-            <Text style={styles.sectionTitle}>{categoryName?.toUpperCase()}</Text>
+            <Text style={styles.sectionTitle}>PODCASTS</Text>
             <View style={styles.underline} />
           </View>
         </View>
         <FlatList
-          data={posts}
+          data={podcasts}
           keyExtractor={(item) => item.id.toString()}
           renderItem={renderNewsItem}
           showsVerticalScrollIndicator={false}
@@ -162,11 +141,10 @@ const styles = StyleSheet.create({
   categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
   container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
   titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginStart: 5, padding: 10, color: '#333' },
-  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, marginStart: 14, borderRadius: 100 },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', padding: 10, color: '#333' },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, borderRadius: 100 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
-  backButton: { padding: 1, marginRight: 10 },
-  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3, overflow: 'hidden' },
+  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3 },
   cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   cardTextContainer: { padding: 12 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
@@ -178,4 +156,4 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 }
 });
 
-export default CategoryScreen;
+export default PodcastScreen;
