@@ -18,7 +18,8 @@ const NewsDetailsScreen = ({ route }) => {
   const imageUrl = news.image ? { uri: news.image } : require('../assets/notfound.png');
 
   // Remove extra text like "[+123 chars]" from content
-  const fullContent = news.content && typeof news.content === 'string' 
+  const fullContent = news.content && typeof news.content === 'string' && !news.content.includes('[+')
+
   ? news.content.replace(/\[\+\d+ chars\]/, '') 
   : '<p>No content available.</p>';
 
@@ -66,7 +67,7 @@ const NewsDetailsScreen = ({ route }) => {
         a: { color: '#007BFF', textDecorationLine: 'underline' },
       }}
       ignoredDomTags={['iframe']} // Remove iframe if any
-      defaultTextProps={{ selectable: true }} // Make text selectable
+
     />
   ) : (
     <Text>No content available.</Text>

@@ -11,7 +11,7 @@
     "splash": {
       "image": "./src/assets/sun-logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#bf272a"
+      "backgroundColor": "#9c031e"
     },
     "ios": {
       "supportsTablet": true

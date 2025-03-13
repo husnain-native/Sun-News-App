@@ -18,7 +18,7 @@ const BottomTabNavigator = () => {
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
-          if (route.name === 'HomeScreen') {
+          if (route.name === 'Home') {
             iconName = 'home';
           } else if (route.name === 'Bookmarks') {
             iconName = 'bookmark';
@@ -35,7 +35,7 @@ const BottomTabNavigator = () => {
         tabBarInactiveTintColor: '#e0e0e0', // Light gray for inactive tab
       })}
     >
-      <Tab.Screen name="HomeScreen" component={HomeStackNavigator} /> 
+      <Tab.Screen name="Home" component={HomeStackNavigator} /> 
 
       <Tab.Screen name="Bookmarks" component={BookmarksScreen} />
       <Tab.Screen name="Contact" component={ContactScreen} />

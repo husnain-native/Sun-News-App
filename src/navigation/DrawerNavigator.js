@@ -46,7 +46,7 @@ const CustomDrawerContent = (props) => {
 
   const handleCategoryPress = (category) => {
     setActiveCategory(category.id);
-    navigation.navigate('Category', { categoryId: category.id, categoryName: category.name });
+    navigation.navigate('Category', { categoryId: category.id, categoryName: 'category' , navigation:navigation});
   };
 
   return (

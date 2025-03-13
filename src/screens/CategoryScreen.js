@@ -1,21 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
-  StyleSheet, ActivityIndicator, Dimensions 
+  StyleSheet, ActivityIndicator, Dimensions, Share, Platform, Alert
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { Bookmark, Share2 } from 'lucide-react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Bookmark } from 'lucide-react-native';
+import { MaterialIcons, Feather, Ionicons } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Linking from 'expo-linking';
 
 const CategoryScreen = () => {
   const route = useRoute();
-//  const navigation = useNavigation();
-  const { categoryId, categoryName, navigation } = route.params || {};
+  const { categoryId, categoryName , navigation} = route.params || {};
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -35,31 +37,78 @@ const CategoryScreen = () => {
     };
 
     fetchPosts();
+    loadBookmarkedPosts();
   }, [categoryId]);
+
+  const loadBookmarkedPosts = async () => {
+    try {
+      const savedPosts = await AsyncStorage.getItem('bookmarkedPosts');
+      if (savedPosts) {
+        setBookmarkedPosts(JSON.parse(savedPosts));
+      }
+    } catch (error) {
+      console.error('Failed to load bookmarks:', error);
+    }
+  };
+
+  const toggleBookmark = async (post) => {
+    let updatedBookmarks = [...bookmarkedPosts];
+    const index = updatedBookmarks.findIndex(item => item.id === post.id);
+    if (index !== -1) {
+      updatedBookmarks.splice(index, 1);
+    } else {
+      updatedBookmarks.push(post);
+    }
+    setBookmarkedPosts(updatedBookmarks);
+    await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
+  };
+
+  const sharePost = async (title, link, image) => {
+    try {
+      const message = `${title}\nRead more: ${link}`;
+      const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
+
+      // Check if WhatsApp is installed
+      const isWhatsAppAvailable = await Linking.canOpenURL(whatsappUrl);
+      if (isWhatsAppAvailable) {
+        await Linking.openURL(whatsappUrl);
+      } else {
+        Alert.alert("WhatsApp Not Installed", "WhatsApp is not installed on this device.");
+        await Share.share({
+          message,
+          url: link,
+          title: title
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing post:', error.message);
+      Alert.alert("Sharing Failed", "There was an error sharing the post.");
+    }
+  };
 
   const renderNewsItem = ({ item }) => {
     if (!item || !item.id) return null;
 
     const title = item.title?.rendered || 'No Title';
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-
     const date = new Date(item.date).toDateString();
+    const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
 
     return (
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('NewsDetails', { 
-                 news: {
-                   title: (item.title.rendered),
-                   content: (item.content.rendered),
-                   description: (item.excerpt.rendered),
-                   image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, // manually
-                   source: { name: 'Sun News' },
-                   publishedAt: item.date
-                 }
-               })} // Corrected screen name
+          news: {
+            title: item.title.rendered,
+            content: item.content.rendered,
+            description: item.excerpt.rendered,
+            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
+            source: { name: 'Sun News' },
+            publishedAt: item.date
+          }
+        })}
       >
-        <Image source={{ uri: imageUrl}} style={styles.cardImage} />
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </View>
@@ -68,11 +117,11 @@ const CategoryScreen = () => {
             <Text style={styles.cardSubtitle}>{date}</Text>
           </View>
           <View style={styles.iconGroup}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Bookmark size={20} color="#BF272a" />
+            <TouchableOpacity style={styles.iconButton} onPress={() => toggleBookmark(item)}>
+              <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Share2 size={20} color="#BF272a" />
+            <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link, imageUrl)}>
+              <Feather name="share" size={22} color="#333" />
             </TouchableOpacity>
           </View>
         </View>
@@ -89,7 +138,11 @@ const CategoryScreen = () => {
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={28} color="#BF272a" />
+          </TouchableOpacity>
         <View style={styles.headerRow}>
+          {/* Back Button Added Here */}
           <MaterialIcons name="category" size={34} color="#BF272a" />
           <View style={styles.titleContainer}>
             <Text style={styles.sectionTitle}>{categoryName?.toUpperCase()}</Text>
@@ -108,98 +161,23 @@ const CategoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  categoryNavContainer: { 
-    width: Dimensions.get('window').width, 
-    backgroundColor: '#fff' 
-  },
-  container: { 
-    flex: 1, 
-    backgroundColor: '#f8f8f8', 
-    paddingHorizontal: 15, 
-    paddingTop: 10 
-  },
-  titleContainer: { 
-    flexDirection: 'column', 
-    alignItems: 'flex-start' 
-  },
-  sectionTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    marginStart: 5, 
-    padding: 10, 
-    color: '#333' 
-  },
-  underline: { 
-    height: 4, 
-    backgroundColor: '#BF272a', 
-    width: '60%', 
-    marginTop: -7, 
-    marginStart: 14, 
-    borderRadius: 100 
-  },
-  headerRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 15, 
-    marginTop: 15 
-  },
-  card: { 
-    backgroundColor: '#fff', 
-    borderRadius: 12, 
-    marginBottom: 15, 
-    paddingBottom: 10, 
-    elevation: 3, 
-    overflow: 'hidden' 
-  },
-  cardImage: { 
-    width: '100%', 
-    height: 180, 
-    borderTopLeftRadius: 12, 
-    borderTopRightRadius: 12 
-  },
-  cardTextContainer: { 
-    padding: 12 
-  },
-  cardTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#222' 
-  },
-  cardSubtitle: { 
-    fontSize: 14, 
-    color: '#666', 
-    marginTop: 2 
-  },
-  iconRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 12, 
-    paddingBottom: 8 
-  },
-  sourceInfo: { 
-    flexDirection: 'column' 
-  },
-  iconGroup: { 
-    flexDirection: 'row' 
-  },
-  iconButton: { 
-    padding: 6, 
-    borderRadius: 8, 
-    backgroundColor: '#EDEDED', 
-    marginLeft: 10 
-  },
-  loader: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  errorText: { 
-    fontSize: 18, 
-    textAlign: 'center', 
-    color: 'red', 
-    marginTop: 20 
-  },
+  categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
+  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginStart: 5, padding: 10, color: '#333' },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, marginStart: 14, borderRadius: 100 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
+  backButton: { padding: 1, marginRight: 10 },
+  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3, overflow: 'hidden' },
+  cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
+  cardTextContainer: { padding: 12 },
+  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  cardSubtitle: { fontSize: 14, color: '#666', marginTop: 2 },
+  iconRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 8 },
+  iconGroup: { flexDirection: 'row' },
+  iconButton: { padding: 6, borderRadius: 8, backgroundColor: '#EDEDED', marginLeft: 10 },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 }
 });
 
 export default CategoryScreen;

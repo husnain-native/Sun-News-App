@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
+import { useBookmarks } from '../context/BookmarkContext'; // Import the context
 
 const BUSINESS_NEWS_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=19&_embed';
 
@@ -11,6 +12,7 @@ const BusinessScreen = ({ navigation }) => {
   const [businessNews, setBusinessNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { toggleBookmark } = useBookmarks(); // Get toggleBookmark function from context
 
   useEffect(() => {
     const fetchBusinessNews = async () => {
@@ -54,7 +56,7 @@ const BusinessScreen = ({ navigation }) => {
             <Text style={styles.cardSubtitle}>{date}</Text>
           </View>
           <View style={styles.iconGroup}>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => toggleBookmark(item)}>
               <Bookmark size={20} color="#BF272a" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton}>
