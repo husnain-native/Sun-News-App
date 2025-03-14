@@ -5,7 +5,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import HomeStackNavigator from './HomeStackNavigator';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import ContactScreen from '../screens/ContactScreen';
-import PodcastScreen from '../screens/PodcastScreen ';
+import PodcastScreen from '../screens/PodcastScreen';
+import LatestNews from '../screens/LatestNews';
 
 const Tab = createBottomTabNavigator();
 
@@ -15,42 +16,45 @@ const BottomTabNavigator = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarStyle: styles.tabBar, 
-        tabBarShowLabel: true, // Show labels for clarity
+        tabBarShowLabel: true, 
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
+
           if (route.name === 'Home') {
             iconName = 'home';
+          } else if (route.name === 'Podcast') {
+            iconName = 'mic'; 
           } else if (route.name === 'Bookmarks') {
             iconName = 'bookmark';
           } else if (route.name === 'Contact') {
             iconName = 'call';
-          }else if (route.name === 'Podcast') {
-            iconName = 'mic'; // 🎙️ Microphone icon for Podcast
+          } else if (route.name === 'Latest') {
+            iconName = 'newspaper-outline';  // Added Icon for Latest News
           }
+
           return (
             <View style={styles.iconContainer}>
               <Ionicons name={iconName} size={size} color={color} />
             </View>
           );
         },
-        tabBarActiveTintColor: '#ffffff', // White text/icons for active tab
-        tabBarInactiveTintColor: '#e0e0e0', // Light gray for inactive tab
+        tabBarActiveTintColor: '#ffffff', 
+        tabBarInactiveTintColor: '#e0e0e0', 
       })}
     >
       <Tab.Screen name="Home" component={HomeStackNavigator} /> 
-
       <Tab.Screen name="Podcast" component={PodcastScreen} />
+      <Tab.Screen name="Latest" component={LatestNews} />
       <Tab.Screen name="Bookmarks" component={BookmarksScreen} />
       <Tab.Screen name="Contact" component={ContactScreen} />
     </Tab.Navigator>
   );
 };
 
-// 🎨 **Modern & Professional Styling**
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: '#BF272a', // Professional news app theme (red)
+    backgroundColor: '#BF272a', 
     height: 60,
     paddingBottom: 5,
     borderTopLeftRadius: 5,

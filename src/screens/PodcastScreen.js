@@ -119,6 +119,7 @@ const PodcastScreen = () => {
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
+      
         <View style={styles.headerRow}>
           <Ionicons name="mic-outline" size={34} color="#BF272a" />
           <View style={styles.titleContainer}>
@@ -144,6 +145,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 20, fontWeight: 'bold', padding: 10, color: '#333' },
   underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, borderRadius: 100 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
+  backButton: { padding: 1, marginRight: 10 },
   card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3 },
   cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   cardTextContainer: { padding: 12 },
