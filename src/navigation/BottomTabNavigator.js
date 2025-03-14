@@ -1,12 +1,13 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import HomeStackNavigator from './HomeStackNavigator';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import ContactScreen from '../screens/ContactScreen';
 import PodcastScreen from '../screens/PodcastScreen';
 import LatestNews from '../screens/LatestNews';
+import { FontAwesome6 } from '@expo/vector-icons'; // Import FontAwesome6
 
 const Tab = createBottomTabNavigator();
 
@@ -20,6 +21,7 @@ const BottomTabNavigator = () => {
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
+          let IconComponent = Ionicons; // Default to Ionicons
 
           if (route.name === 'Home') {
             iconName = 'home';
@@ -29,13 +31,14 @@ const BottomTabNavigator = () => {
             iconName = 'bookmark';
           } else if (route.name === 'Contact') {
             iconName = 'call';
-          } else if (route.name === 'Latest') {
-            iconName = 'newspaper-outline';  // Added Icon for Latest News
+          } else if (route.name === 'Breaking') {
+            iconName = focused ? 'bolt' : 'bolt-lightning'; // ⚡ Lightning bolt effect
+            IconComponent = FontAwesome6; // Use FontAwesome6 for bolt icon
           }
 
           return (
             <View style={styles.iconContainer}>
-              <Ionicons name={iconName} size={size} color={color} />
+              <IconComponent name={iconName} size={size} color={color} />
             </View>
           );
         },
@@ -45,7 +48,7 @@ const BottomTabNavigator = () => {
     >
       <Tab.Screen name="Home" component={HomeStackNavigator} /> 
       <Tab.Screen name="Podcast" component={PodcastScreen} />
-      <Tab.Screen name="Latest" component={LatestNews} />
+      <Tab.Screen name="Breaking" component={LatestNews} />
       <Tab.Screen name="Bookmarks" component={BookmarksScreen} />
       <Tab.Screen name="Contact" component={ContactScreen} />
     </Tab.Navigator>

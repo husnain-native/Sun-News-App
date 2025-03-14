@@ -5,14 +5,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, FontAwesome6 } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 
-const PODCAST_CATEGORY_ID = 24;  // Replace with the actual Podcast category ID
+const PODCAST_CATEGORY_ID = 31;  // Replace with the actual Podcast category ID
 
-const LatestNews = () => {
+const PodcastScreen = () => {
   const navigation = useNavigation();
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,16 +20,12 @@ const LatestNews = () => {
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
   useEffect(() => {
-const fetchPodcasts = async () => {
-    console.log("Fetching podcasts...");
-
+    const fetchPodcasts = async () => {
       try {
         const response = await fetch(
           `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${PODCAST_CATEGORY_ID}&_embed`
         );
         const data = await response.json();
-        console.log("Fetched podcasts data:", data);
-
         setPodcasts(data);
       } catch (error) {
         setError(error.message);
@@ -79,10 +75,7 @@ const fetchPodcasts = async () => {
     if (!item || !item.id) return null;
 
     const title = item.title?.rendered || 'No Title';
-const imageUrl = (item._embedded?.['wp:featuredmedia']?.[0]?.source_url && typeof item._embedded['wp:featuredmedia'][0].source_url === 'string') 
-  ? item._embedded['wp:featuredmedia'][0].source_url 
-  : require('../assets/notfound.png');
-
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
     const date = new Date(item.date).toDateString();
     const isBookmarked = bookmarkedPosts.some(podcast => podcast.id === item.id);
 
@@ -90,7 +83,7 @@ const imageUrl = (item._embedded?.['wp:featuredmedia']?.[0]?.source_url && typeo
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('NewsDetails', { 
-          podcast: {
+          news: {  // Correct parameter name
             title: item.title.rendered,
             content: item.content.rendered,
             image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
@@ -126,11 +119,10 @@ const imageUrl = (item._embedded?.['wp:featuredmedia']?.[0]?.source_url && typeo
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
-      
         <View style={styles.headerRow}>
-          <Ionicons name="mic-outline" size={34} color="#BF272a" />
+          <FontAwesome6 name="bolt" size={34} color="#BF272a" />
           <View style={styles.titleContainer}>
-            <Text style={styles.sectionTitle}>PODCASTS</Text>
+            <Text style={styles.sectionTitle}>Breaking News</Text>
             <View style={styles.underline} />
           </View>
         </View>
@@ -150,7 +142,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
   titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', padding: 10, color: '#333' },
-  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, borderRadius: 100 },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '70%', marginTop: -6, borderRadius: 100, marginStart: 10 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
   backButton: { padding: 1, marginRight: 10 },
   card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3 },
@@ -165,4 +157,4 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 }
 });
 
-export default LatestNews;
+export default PodcastScreen;

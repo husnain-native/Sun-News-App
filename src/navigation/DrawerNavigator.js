@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import BottomTabNavigator from './BottomTabNavigator';
 import CategoryScreen from '../screens/CategoryScreen';
 import BookmarksScreen from '../screens/BookmarksScreen';
+import CategoryNavigation from '../components/CategoryNavigation';
 
 const Drawer = createDrawerNavigator();
 const API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
@@ -116,6 +117,7 @@ const DrawerNavigator = () => {
     >
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
       <Drawer.Screen name="Category" component={CategoryScreen} />
+       <Drawer.Screen name='navigation' component={CategoryNavigation}/>
       <Drawer.Screen name="Bookmarks" component={BookmarksScreen} />
     </Drawer.Navigator>
   );

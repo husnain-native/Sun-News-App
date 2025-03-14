@@ -83,7 +83,7 @@ const PodcastScreen = () => {
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate('NewsDetails', { 
-          podcast: {
+          news: {  // Correct parameter name
             title: item.title.rendered,
             content: item.content.rendered,
             image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
@@ -119,7 +119,6 @@ const PodcastScreen = () => {
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
-      
         <View style={styles.headerRow}>
           <Ionicons name="mic-outline" size={34} color="#BF272a" />
           <View style={styles.titleContainer}>

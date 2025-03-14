@@ -1,55 +1,146 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons'; // Importing Icons
+import React from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet, Linking, ScrollView } from "react-native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
+import Ionicons from "react-native-vector-icons/Ionicons"; // Import greater-than icon
+import CategoryNavigation from "../components/CategoryNavigation";
 
-const ContactScreen = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
+
+const FollowUsScreen = () => {
+  const openSocialMedia = (platform) => {
+    let url = "";
+    switch (platform) {
+      case "facebook":
+        url = "https://www.facebook.com/SunNews";
+        break;
+      case "twitter":
+        url = "https://www.twitter.com/SunNews";
+        break;
+      case "instagram":
+        url = "https://www.instagram.com/SunNews";
+        break;
+      case "youtube":
+        url = "https://www.youtube.com/SunNews";
+        break;
+    }
+    Linking.openURL(url).catch(() => alert("Failed to open link."));
+  };
 
   return (
-    <View className="flex-1 bg-white p-6">
-      {/* Heading */}
-      <Text className="text-2xl font-bold text-gray-800 text-center">Contact Us</Text>
+    <View style={{flex: 1}}>
+    <View >
 
-      {/* Contact Info */}
-      <View className="flex-row items-center mt-6">
-        <Icon name="phone" size={20} color="#4CAF50" />
-        <Text className="ml-2 text-gray-700">+92 300 1234567</Text>
-      </View>
-      <View className="flex-row items-center mt-2">
-        <Icon name="email" size={20} color="#2196F3" />
-        <Text className="ml-2 text-gray-700">info@example.com</Text>
-      </View>
+      <CategoryNavigation />
+    </View>
+    <View style={styles.container}>
+      {/* Category Navigation at the top */}
 
-      {/* Form */}
-      <TextInput
-        className="border border-gray-300 rounded-lg p-3 mt-6"
-        placeholder="Your Name"
-        value={name}
-        onChangeText={setName}
-      />
-      <TextInput
-        className="border border-gray-300 rounded-lg p-3 mt-4"
-        placeholder="Your Email"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        className="border border-gray-300 rounded-lg p-3 mt-4 h-24"
-        placeholder="Your Message"
-        multiline
-        value={message}
-        onChangeText={setMessage}
-      />
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        {/* Sun News Logo */}
+        <Image source={require("../assets/sun-logo.png")} style={styles.logo} />
 
-      {/* Send Button */}
-      <TouchableOpacity className="bg-blue-600 rounded-lg py-3 mt-6">
-        <Text className="text-white text-center font-semibold">Send Message</Text>
-      </TouchableOpacity>
+        {/* Introduction */}
+        <Text style={styles.appName}>SUN NEWS</Text>
+        <Text style={styles.introText}>
+        <Text style={{ fontWeight: "bold", color: "#bf272a", fontSize: 20 }}>Sun News</Text> brings you authentic, fast, and reliable news from Pakistan and across the globe. 🌍📰 Stay
+          informed with breaking headlines, in-depth analysis, and trending stories – anytime, anywhere! 📲🔥
+        </Text>
+
+        {/* Social Media Links */}
+        <TouchableOpacity style={styles.socialButton} onPress={() => openSocialMedia("facebook")}>
+          <FontAwesome name="facebook-square" size={40} color="#1877F2" />
+          <Text style={styles.socialText}>Follow us on Facebook</Text>
+          <Ionicons name="chevron-forward" size={20} color="#333" style={styles.arrowIcon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.socialButton} onPress={() => openSocialMedia("instagram")}>
+          <FontAwesome name="instagram" size={40} color="#C13584" />
+          <Text style={styles.socialText}>Follow us on Instagram</Text>
+          <Ionicons name="chevron-forward" size={20} color="#333" style={styles.arrowIcon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.socialButton} onPress={() => openSocialMedia("twitter")}>
+          <FontAwesome name="twitter" size={40} color="#1DA1F2" />
+          <Text style={styles.socialText}>Follow us on Twitter</Text>
+          <Ionicons name="chevron-forward" size={20} color="#333" style={styles.arrowIcon} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.socialButton} onPress={() => openSocialMedia("youtube")}>
+          <FontAwesome name="youtube-play" size={40} color="#FF0000" />
+          <Text style={styles.socialText}>Subscribe on YouTube</Text>
+          <Ionicons name="chevron-forward" size={20} color="#333" style={styles.arrowIcon} />
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
     </View>
   );
 };
 
-export default ContactScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollContainer: {
+    alignItems: "center",
+    padding: 20,
+  },
+  categoryNav: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#bf272a",
+    paddingVertical: 12,
+  },
+  navItem: {
+    paddingHorizontal: 10,
+  },
+  navText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  logo: {
+    width: 100,
+    height: 150,
+    marginTop: 10,
+  },
+  appName: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#bf272a",
+    marginTop: 10,
+  },
+  introText: {
+    fontSize: 16,
+    color: "#000",
+    textAlign: "center",
+    marginVertical: 1,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  socialButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#d9d7d2",
+    padding: 19,
+    borderRadius: 10,
+    width: "90%",
+    marginVertical: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+  },
+  socialText: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+    marginLeft: 15,
+  },
+  arrowIcon: {
+    marginLeft: 10,
+  },
+});
+
+export default FollowUsScreen;
