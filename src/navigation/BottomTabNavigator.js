@@ -1,13 +1,14 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import HomeStackNavigator from './HomeStackNavigator';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import ContactScreen from '../screens/ContactScreen';
 import PodcastScreen from '../screens/PodcastScreen';
 import LatestNews from '../screens/LatestNews';
-import { FontAwesome6 } from '@expo/vector-icons'; // Import FontAwesome6
+import { FontAwesome6 } from '@expo/vector-icons'; 
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'; // Import MaterialCommunityIcons
 
 const Tab = createBottomTabNavigator();
 
@@ -21,17 +22,21 @@ const BottomTabNavigator = () => {
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
-          let IconComponent = Ionicons; // Default to Ionicons
+          let IconComponent = Ionicons; // Default icon component
 
-          if (route.name === 'Home') {
+          if (route.name === 'HOME') {
             iconName = 'home';
-          } else if (route.name === 'Podcast') {
+          } else if (route.name === 'PODCAST') {
             iconName = 'mic'; 
-          } else if (route.name === 'Bookmarks') {
+          } else if (route.name === 'SAVED') {
             iconName = 'bookmark';
-          } else if (route.name === 'Contact') {
-            iconName = 'call';
-          } else if (route.name === 'Breaking') {
+          } else if (route.name === 'FOLLOW') {
+            return (
+              <View style={styles.iconContainer}>
+                <MaterialCommunityIcons name="account-supervisor" size={size} color={color} />
+              </View>
+            );
+          } else if (route.name === 'BREAKING') {
             iconName = focused ? 'bolt' : 'bolt-lightning'; // ⚡ Lightning bolt effect
             IconComponent = FontAwesome6; // Use FontAwesome6 for bolt icon
           }
@@ -42,15 +47,15 @@ const BottomTabNavigator = () => {
             </View>
           );
         },
-        tabBarActiveTintColor: '#ffffff', 
-        tabBarInactiveTintColor: '#e0e0e0', 
+        tabBarActiveTintColor: '#fff', 
+        tabBarInactiveTintColor: '#d9cccc', 
       })}
     >
-      <Tab.Screen name="Home" component={HomeStackNavigator} /> 
-      <Tab.Screen name="Podcast" component={PodcastScreen} />
-      <Tab.Screen name="Breaking" component={LatestNews} />
-      <Tab.Screen name="Bookmarks" component={BookmarksScreen} />
-      <Tab.Screen name="Contact" component={ContactScreen} />
+      <Tab.Screen name="HOME" component={HomeStackNavigator} /> 
+      <Tab.Screen name="PODCAST" component={PodcastScreen} />
+      <Tab.Screen name="BREAKING" component={LatestNews} />
+      <Tab.Screen name="SAVED" component={BookmarksScreen} />
+      <Tab.Screen name="FOLLOW" component={ContactScreen} />
     </Tab.Navigator>
   );
 };

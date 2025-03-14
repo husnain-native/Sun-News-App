@@ -1,16 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Share } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 import axios from 'axios';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { decode } from 'html-entities'; // For decoding HTML entities
+import { decode } from 'html-entities';
 
 const SportsSection = ({ navigation }) => {
   const [sportsNews, setSportsNews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [bookmarkedItems, setBookmarkedItems] = useState([]);
 
+  useEffect(() => {
+    fetchSportsNews();
+    loadBookmarks();
+  }, []);
+
+  // Fetch Sports News
   const fetchSportsNews = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(
         'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed'
       );
@@ -22,44 +31,88 @@ const SportsSection = ({ navigation }) => {
     }
   };
 
-  useEffect(() => {
-    fetchSportsNews();
-  }, []);
+  // Load Bookmarked Items from AsyncStorage
+  const loadBookmarks = async () => {
+    try {
+      const storedBookmarks = await AsyncStorage.getItem('bookmarkedSports');
+      if (storedBookmarks) {
+        setBookmarkedItems(JSON.parse(storedBookmarks));
+      }
+    } catch (error) {
+      console.error('Error loading bookmarks:', error);
+    }
+  };
 
+  // Toggle Bookmark (Save or Remove)
+  const toggleBookmark = async (item) => {
+    try {
+      setBookmarkedItems((prevBookmarks) => {
+        let updatedBookmarks;
+        if (prevBookmarks.some((news) => news.id === item.id)) {
+          // Remove bookmark
+          updatedBookmarks = prevBookmarks.filter((news) => news.id !== item.id);
+        } else {
+          // Add bookmark
+          updatedBookmarks = [...prevBookmarks, item];
+        }
+        AsyncStorage.setItem('bookmarkedSports', JSON.stringify(updatedBookmarks));
+        return updatedBookmarks;
+      });
+    } catch (error) {
+      console.error('Error saving bookmark:', error);
+    }
+  };
+
+  // Share News
+  const shareNews = async (title, url) => {
+    try {
+      await Share.share({
+        message: `${title}\nRead more: ${url}`,
+      });
+    } catch (error) {
+      console.error('Error sharing news:', error);
+    }
+  };
+
+  // Render News Item
   const renderNewsItem = ({ item }) => {
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+    const isBookmarked = bookmarkedItems.some((news) => news.id === item.id);
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('NewsDetails', { 
-          news: {
-            title: decode(item.title.rendered),
-            content: decode(item.content.rendered),
-            description: decode(item.excerpt.rendered),
-            image: imageUrl,
-            source: { name: 'Sun News' },
-            publishedAt: item.date
-          }
-        })}
+        onPress={() =>
+          navigation.navigate('NewsDetails', {
+            news: {
+              id: item.id,
+              title: decode(item.title.rendered),
+              content: decode(item.content.rendered),
+              description: decode(item.excerpt.rendered),
+              image: imageUrl,
+              source: { name: 'Sun News' },
+              publishedAt: item.date,
+            },
+          })
+        }
       >
-        <Image 
-          source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} 
-          style={styles.cardImage} 
-        />
+        <Image source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
           <Text style={styles.cardTitle} numberOfLines={3}>{decode(item.title.rendered)}</Text>
           <View style={styles.bottomRow}>
-  <View style={styles.dateContainer}>
-    <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" />
-    <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
-  </View>
-  <View style={styles.iconRow}>
-    <Bookmark size={20} color="#bf272a" />
-    <Share2 size={20} color="#bf272a" style={{ marginLeft: 12 }} />
-  </View>
-</View>
-
+            <View style={styles.dateContainer}>
+              <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" />
+              <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+            </View>
+            <View style={styles.iconRow}>
+              <TouchableOpacity onPress={() => toggleBookmark(item)}>
+                <Bookmark size={20} color={isBookmarked ? "#bf272a" : "gray"} fill={isBookmarked ? "#bf272a" : "none"} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => shareNews(decode(item.title.rendered), item.link)}>
+                <Share2 size={20} color="#bf272a" style={{ marginLeft: 12 }} />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -82,11 +135,11 @@ const SportsSection = ({ navigation }) => {
       </View>
 
       <FlatList
-  data={sportsNews.slice(0, 3)}  // Show only 3 posts
-  keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
-  renderItem={renderNewsItem}
-  showsVerticalScrollIndicator={false}  // Hide scrollbar
-/>
+        data={sportsNews.slice(0, 3)}
+        keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
+        renderItem={renderNewsItem}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 };
@@ -95,57 +148,60 @@ const styles = StyleSheet.create({
   sectionContainer: {
     paddingHorizontal: 15,
     paddingBottom: 15,
-    backgroundColor: '#F9F9F9'
+    backgroundColor: '#e3e1e1',
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginLeft: 8,
-    color: '#333'
+    color: '#333',
   },
   seeAll: {
-    fontSize: 14, color: '#bf272a', fontWeight: 'bold', backgroundColor: "#d4d6d9", paddingVertical: 5, paddingHorizontal: 10, borderRadius: 10, marginRight: 7 
+    fontSize: 14,
+    color: '#bf272a',
+    fontWeight: 'bold',
+    backgroundColor: '#d4d6d9',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    marginRight: 7,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 15
+    marginVertical: 15,
   },
-
-  // Card Styling
   card: {
     flexDirection: 'row',
-    backgroundColor: '#F9F9F9',
+    backgroundColor: '#e3e1e1',
     borderRadius: 10,
-    
     marginBottom: 12,
     padding: 10,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   cardImage: {
     width: 120,
     height: 90,
-    // borderRadius: 8,
-    marginRight: 10
+    marginRight: 10,
   },
   cardTextContainer: {
     flex: 1,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#222'
+    color: '#222',
   },
   cardSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: 'gray',
-    marginVertical: 5
+    marginLeft: 5,
   },
   iconRow: {
     flexDirection: 'row',
-    marginTop: 8
+    alignItems: 'center',
   },
   bottomRow: {
     flexDirection: 'row',
@@ -153,23 +209,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
   },
-  
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  
-  cardSubtitle: {
-    fontSize: 12,
-    color: 'gray',
-    marginLeft: 5,  // Space between icon and text
-  },
-  
-  iconRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
 });
 
 export default SportsSection;

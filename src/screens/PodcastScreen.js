@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons , MaterialCommunityIcons} from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
@@ -102,7 +102,7 @@ const PodcastScreen = () => {
               <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link)}>
-              <Feather name="share" size={22} color="#333" />
+              <MaterialCommunityIcons name="share-variant-outline" size={22} color="#bf272a" />
             </TouchableOpacity>
           </View>
         </View>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
   titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', padding: 10, color: '#333' },
-  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, borderRadius: 100 },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '70%', marginTop: -7, borderRadius: 100, marginStart: 8 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
   backButton: { padding: 1, marginRight: 10 },
   card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3 },

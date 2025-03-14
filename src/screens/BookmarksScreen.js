@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
-  StyleSheet, ActivityIndicator, Share
+  StyleSheet, ActivityIndicator, Share, Dimensions
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FontAwesome, Feather } from '@expo/vector-icons';
+import { FontAwesome, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import CategoryNavigation from '../components/CategoryNavigation';
 
 const BookmarkScreen = ({ navigation }) => {
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
@@ -40,7 +41,7 @@ const BookmarkScreen = ({ navigation }) => {
 
   const sharePost = async (title, link) => {
     try {
-      await Share.share({ message: `${title}\nRead more: ${link}` });
+      await Share.share({ message: `${link}` });
     } catch (error) {
       console.error('Error sharing post:', error);
     }
@@ -52,8 +53,9 @@ const BookmarkScreen = ({ navigation }) => {
     const date = new Date(item?.date).toDateString();
 
     return (
-      <View style={styles.card}>
-        <TouchableOpacity onPress={() => navigation.navigate('NewsDetails', { 
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate('NewsDetails', { 
           news: {
             title: item?.title?.rendered,
             content: item?.content?.rendered,
@@ -62,55 +64,78 @@ const BookmarkScreen = ({ navigation }) => {
             source: { name: 'Sun News' },
             publishedAt: item?.date
           }
-        })}>
-          <Image source={{ uri: imageUrl }} style={styles.cardImage} />
-          <View style={styles.cardTextContainer}>
-            <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
-            <Text style={styles.cardSubtitle}>{date}</Text>
-          </View>
-        </TouchableOpacity>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity onPress={() => removeBookmark(item.id)}>
-            <FontAwesome name="bookmark" size={22} color="#bf272a" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => sharePost(title, item.link)}>
-            <Feather name="share" size={22} color="#333" />
-          </TouchableOpacity>
+        })}
+      >
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
+        <View style={styles.cardTextContainer}>
+          <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </View>
-      </View>
+        <View style={styles.iconRow}>
+          <Text style={styles.cardSubtitle}>{date}</Text>
+          <View style={styles.iconGroup}>
+            <TouchableOpacity onPress={() => removeBookmark(item.id)} style={styles.iconButton}>
+              <FontAwesome name="bookmark" size={20} color="#BF272a" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => sharePost(title, item.link)} style={styles.iconButton}>
+              <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
     );
   };
 
   if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Bookmarked Posts</Text>
-      {bookmarkedPosts.length === 0 ? (
-        <Text style={styles.noBookmarks}>No bookmarks yet</Text>
-      ) : (
-        <FlatList
-          data={bookmarkedPosts}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderNewsItem}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+    <View style={{ flex: 1 }}>
+      {/* Category Navigation at the Top */}
+      <View style={styles.categoryNavContainer}>
+        <CategoryNavigation />
+      </View>
+
+      <View style={styles.container}>
+        {/* Bookmark Title with Icon */}
+        <View style={styles.headerRow}>
+          <MaterialCommunityIcons name="bookmark" size={34} color="#BF272a" />
+          <View style={styles.titleContainer}>
+            <Text style={styles.sectionTitle}>SAVED</Text>
+            <View style={styles.underline} />
+          </View>
+        </View>
+
+        {bookmarkedPosts.length === 0 ? (
+          <Text style={styles.noBookmarks}>No bookmarks yet</Text>
+        ) : (
+          <FlatList
+            data={bookmarkedPosts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderNewsItem}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 15, backgroundColor: '#f8f8f8' },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 10, textAlign: 'center', color: '#333' },
-  noBookmarks: { fontSize: 16, textAlign: 'center', marginTop: 20, color: 'gray' },
-  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, elevation: 3, overflow: 'hidden', paddingBottom: 10 },
+  categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
+  sectionTitle: { fontSize: 25, fontWeight: 'bold', padding: 10, color: '#333' },
+  underline: { height: 4, backgroundColor: '#BF272a', width: '70%', marginTop: -7, borderRadius: 100, marginStart: 8 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
+  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3 },
   cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   cardTextContainer: { padding: 12 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
   cardSubtitle: { fontSize: 14, color: '#666', marginTop: 2 },
-  iconContainer: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15, paddingTop: 8 },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' }
+  iconRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 8 },
+  iconGroup: { flexDirection: 'row' },
+  iconButton: { padding: 6, borderRadius: 8, backgroundColor: '#EDEDED', marginLeft: 10 },
+  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  noBookmarks: { fontSize: 16, textAlign: 'center', marginTop: 20, color: 'gray' }
 });
 
 export default BookmarkScreen;

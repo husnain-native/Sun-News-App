@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
-import { MaterialIcons, Feather, Ionicons } from '@expo/vector-icons';
+import { MaterialIcons, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
@@ -63,28 +63,16 @@ const CategoryScreen = () => {
     await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
-  const sharePost = async (title, link, image) => {
+  const sharePost = async (title, link) => {
     try {
-      const message = `${title}\nRead more: ${link}`;
-      const whatsappUrl = `whatsapp://send?text=${encodeURIComponent(message)}`;
-
-      // Check if WhatsApp is installed
-      const isWhatsAppAvailable = await Linking.canOpenURL(whatsappUrl);
-      if (isWhatsAppAvailable) {
-        await Linking.openURL(whatsappUrl);
-      } else {
-        Alert.alert("WhatsApp Not Installed", "WhatsApp is not installed on this device.");
-        await Share.share({
-          message,
-          url: link,
-          title: title
-        });
-      }
+      await Share.share({
+        message: `${link}`
+      });
     } catch (error) {
-      console.error('Error sharing post:', error.message);
-      Alert.alert("Sharing Failed", "There was an error sharing the post.");
+      console.error('Error sharing post:', error);
     }
   };
+  
 
   const renderNewsItem = ({ item }) => {
     if (!item || !item.id) return null;
@@ -121,7 +109,7 @@ const CategoryScreen = () => {
               <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link, imageUrl)}>
-              <Feather name="share" size={22} color="#333" />
+              <MaterialCommunityIcons name="share-variant-outline" size={22} color="#bf272a" />
             </TouchableOpacity>
           </View>
         </View>

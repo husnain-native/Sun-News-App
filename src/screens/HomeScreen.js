@@ -1,10 +1,10 @@
 import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import LatestNews from '../components/LatestNewsSection';
+import LatestNewsSection from '../components/LatestNewsSection';
 import BusinessSection from '../components/BusinessSection';
 import EntertainmentSection from '../components/EntertainmentSection';
 import SportsSection from '../components/SportsSection';
-import CategoryNavigation from '../components/CategoryNavigation'; // ✅ Import CategoryNavigation
+import CategoryNavigation from '../components/CategoryNavigation';
 import { newsData } from '../data/newsData';
 
 const HomeScreen = ({ navigation }) => {
@@ -13,20 +13,11 @@ const HomeScreen = ({ navigation }) => {
       style={styles.container}
       data={[
         {
-          key: 'latestNews',
+          key: 'latestNewsSection',
           component: (
             <View>
               <CategoryNavigation />
-              {/* ✅ Category Navigation under Latest News Section */}
-              <LatestNews
-                navigation={navigation}
-              latestNews={[
-                ...(Array.isArray(newsData.Business) ? newsData.Business.slice(0, 2) : []),
-                ...(Array.isArray(newsData.Sports) ? newsData.Sports.slice(0, 2) : []),
-                ...(Array.isArray(newsData.Entertainment) ? newsData.Entertainment.slice(0, 1) : []),
-              ]}
-
-              />
+              <LatestNewsSection />
             </View>
           ),
         },
