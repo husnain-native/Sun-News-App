@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, useWindowDimensions, I18nManager } from 'react-native';
 import RenderHtml, { defaultHTMLElementModels } from 'react-native-render-html';
 import CategoryNavigation from '../components/CategoryNavigation';
+
+// Enable RTL layout
+I18nManager.forceRTL(true); // Force RTL layout for Urdu
 
 // **Custom Image Renderer**
 const customRenderers = {
@@ -69,9 +72,15 @@ const NewsDetailsScreen = ({ route }) => {
             source={{ html: fullContent }}
             tagsStyles={htmlStyles}
             ignoredDomTags={['iframe']}
-            customHTMLElementModels={customModels} // Corrected renderer usage
+            customHTMLElementModels={customModels}
+            baseStyle={{ textAlign: 'right', fontFamily: 'NotoNastaliqUrdu' }} // RTL and Urdu font
           />
         </View>
+
+        {/* Bottom Line Text */}
+        <Text style={styles.bottomLine}>
+          تس، ویذیوز نباکر ب. بنه جل گیا وی لگنگ مشکل.
+        </Text>
       </ScrollView>
     </View>
   );
@@ -94,8 +103,22 @@ const styles = StyleSheet.create({
     marginTop: 15,
   },
   newsImage: { width: '100%', height: 220, resizeMode: 'cover' },
-  title: { fontSize: 24, fontWeight: 'bold', color: '#212529', marginBottom: 8 },
-  source: { fontSize: 14, color: '#bf272a', fontWeight: '600', marginBottom: 12 },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginBottom: 8,
+    textAlign: 'right', // RTL alignment for Urdu
+    fontFamily: 'NotoNastaliqUrdu', // Urdu font
+  },
+  source: {
+    fontSize: 14,
+    color: '#bf272a',
+    fontWeight: '600',
+    marginBottom: 12,
+    textAlign: 'right', // RTL alignment for Urdu
+    fontFamily: 'NotoNastaliqUrdu', // Urdu font
+  },
   contentContainer: {
     backgroundColor: '#fff',
     padding: 8,
@@ -108,13 +131,34 @@ const styles = StyleSheet.create({
   },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   errorText: { fontSize: 18, color: 'red', fontWeight: 'bold' },
+  bottomLine: {
+    fontSize: 14,
+    color: '#343A40',
+    textAlign: 'right', // Ensure bottom line is aligned to the right
+    fontFamily: 'NotoNastaliqUrdu', // Urdu font
+    marginTop: 10, // Add some margin for spacing
+  },
 });
 
 // **HTML Styles**
 const htmlStyles = {
-  p: { fontSize: 16, color: '#343A40', lineHeight: 24 },
-  strong: { fontWeight: 'bold', color: '#212529' },
-  a: { color: '#007BFF', textDecorationLine: 'underline' },
+  p: {
+    fontSize: 16,
+    color: '#343A40',
+    lineHeight: 24,
+    textAlign: 'right', // RTL alignment for Urdu
+    fontFamily: 'NotoNastaliqUrdu', // Urdu font
+  },
+  strong: {
+    fontWeight: 'bold',
+    color: '#212529',
+    fontFamily: 'NotoNastaliqUrdu', // Urdu font
+  },
+  a: {
+    color: '#007BFF',
+    textDecorationLine: 'underline',
+    fontFamily: 'NotoNastaliqUrdu', // Urdu font
+  },
 };
 
 export default NewsDetailsScreen;

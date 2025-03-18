@@ -2,17 +2,18 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import DrawerNavigator from './DrawerNavigator';  
 import { BookmarkProvider } from '../context/BookmarkContext';
-import CategoryNavigation from '../components/CategoryNavigation';
+import { LanguageProvider } from '../context/LanguageContext'; // ✅ Fixed path
 
 const AppNavigator = () => {
   return (
-    <BookmarkProvider>
-      <NavigationContainer>
-        {/* DrawerNavigator includes BottomTabNavigator inside */}
-        
-        <DrawerNavigator />
-      </NavigationContainer>
-    </BookmarkProvider>
+    <LanguageProvider> {/* ✅ Wrap language provider outside */}
+      <BookmarkProvider>
+        <NavigationContainer>
+          {/* DrawerNavigator includes BottomTabNavigator inside */}
+          <DrawerNavigator />
+        </NavigationContainer>
+      </BookmarkProvider>
+    </LanguageProvider>
   );
 };
 

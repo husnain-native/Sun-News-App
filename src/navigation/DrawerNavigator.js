@@ -2,33 +2,43 @@ import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { View, Text, Image, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useLanguage } from '../context/LanguageContext'; // ✅ Import custom hook
 import BottomTabNavigator from './BottomTabNavigator';
 import CategoryScreen from '../screens/CategoryScreen';
 import BookmarksScreen from '../screens/BookmarksScreen';
 import CategoryNavigation from '../components/CategoryNavigation';
+import HomeScreen from '../screens/HomeScreen';
 
 const Drawer = createDrawerNavigator();
-const API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
 
-// Custom Header with Logo
-const CustomHeaderTitle = () => (
+const ENGLISH_API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
+const URDU_API_URL = 'https://sunnewshd.tv/wp-json/wp/v2/categories?per_page=100';
+
+// Custom Header with Logo and Language Toggle
+const CustomHeaderTitle = ({ toggleLanguage, language }) => (
   <View style={styles.headerContainer}>
-    <Image source={require('../assets/sun-logo.png')} style={styles.logo} />
-    <Text style={styles.headerTitle}>SUN NEWS</Text>
+    <View style={styles.titleLogo}>
+      <Image source={require('../assets/sun-logo.png')} style={styles.logo} />
+      <Text style={styles.headerTitle}>SUN NEWS</Text>
+    </View>
+    <TouchableOpacity onPress={toggleLanguage} style={styles.languageButton}>
+      <Text style={styles.languageText}>{language === 'en' ? 'اردو' : 'English'}</Text>
+    </TouchableOpacity>
   </View>
 );
 
 // Custom Drawer Content
-const CustomDrawerContent = (props) => {
+const CustomDrawerContent = ({ navigation, language }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeCategory, setActiveCategory] = useState(null);
-  const navigation = useNavigation();
 
   const fetchCategories = async () => {
     setLoading(true);
     setError(false);
+    const API_URL = language === 'en' ? ENGLISH_API_URL : URDU_API_URL;
+
     try {
       const response = await fetch(API_URL);
       if (!response.ok) throw new Error('Failed to fetch categories');
@@ -44,28 +54,25 @@ const CustomDrawerContent = (props) => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
   const handleCategoryPress = (category) => {
     setActiveCategory(category.id);
-    navigation.navigate('Category', { 
-      categoryId: category.id, 
-      categoryName: category.name
+    navigation.navigate('Category', {
+      categoryId: category.id,
+      categoryName: category.name,
+      language: language, // Pass language to CategoryScreen
     });
   };
 
   return (
-    <DrawerContentScrollView {...props} contentContainerStyle={styles.drawerContainer}>
-      {/* Drawer Header */}
+    <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>
       <View style={styles.drawerHeader}>
         <Image source={require('../assets/sun-logo.png')} style={styles.drawerLogo} />
         <Text style={styles.drawerTitle}>SUN NEWS</Text>
       </View>
 
-      {/* Loader */}
       {loading && <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} />}
-
-      {/* Error Message & Retry */}
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Failed to load categories</Text>
@@ -75,15 +82,15 @@ const CustomDrawerContent = (props) => {
         </View>
       )}
 
-      {/* Drawer Items */}
       <View style={styles.drawerItemsContainer}>
+        {/* Home Menu Item */}
         <DrawerItem
-          label="Home"
+          label={language === 'en' ? 'Home' : 'ہوم'} // ✅ Dynamic label for Home
           onPress={() => navigation.navigate('Home')}
           labelStyle={styles.drawerLabel}
         />
 
-        {/* Dynamic Categories */}
+        {/* Categories */}
         {categories.map((category) => (
           <DrawerItem
             key={category.id}
@@ -98,13 +105,14 @@ const CustomDrawerContent = (props) => {
   );
 };
 
-// Drawer Navigator
 const DrawerNavigator = () => {
+  const { language, toggleLanguage } = useLanguage(); // ✅ Use custom hook
+
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <CustomDrawerContent {...props} />}
+      drawerContent={(props) => <CustomDrawerContent {...props} language={language} />}
       screenOptions={{
-        headerTitle: () => <CustomHeaderTitle />,
+        headerTitle: () => <CustomHeaderTitle toggleLanguage={toggleLanguage} language={language} />,
         headerStyle: { backgroundColor: '#BF272a' },
         headerTitleAlign: 'center',
         headerTintColor: 'white',
@@ -116,14 +124,14 @@ const DrawerNavigator = () => {
       }}
     >
       <Drawer.Screen name="Home" component={BottomTabNavigator} />
-      <Drawer.Screen name="Category" component={CategoryScreen} />
-       <Drawer.Screen name='navigation' component={CategoryNavigation}/>
+      {/* <Drawer.Screen name='Home' component={HomeScreen}/> */}
+      <Drawer.Screen name="Category" component={CategoryScreen} initialParams={{ language }} />
+      <Drawer.Screen name="Navigation" component={CategoryNavigation} />
       <Drawer.Screen name="Bookmarks" component={BookmarksScreen} />
     </Drawer.Navigator>
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   drawerContainer: { flex: 1 },
   drawerHeader: {
@@ -134,15 +142,31 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     marginBottom: 10,
   },
-  logo: { width: 35, height: 45, resizeMode: 'contain' },
+  logo: { width: 35, height: 45, resizeMode: 'contain', borderWidth: 1, borderColor: '#fff' },
   drawerLogo: { width: 86, height: 86, resizeMode: 'contain' },
   drawerTitle: { fontSize: 40, fontWeight: 'bold', color: 'white', marginTop: 8 },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    // paddingHorizontal: 5,
   },
-  headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginTop: 8, paddingLeft: 3 },
+  titleLogo: { flexDirection: 'row', marginLeft: 60 },
+  headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginLeft: 5 },
+  languageButton: {
+    padding: 5,
+    backgroundColor: '#a82729',
+    color: '#fff',
+    marginStart: 30,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#d6b6b7',
+    minWidth: 90,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  languageText: { color: '#fff', fontWeight: 'bold', fontSize: 20 },
   drawerItemsContainer: { flex: 1, paddingHorizontal: 10 },
   drawerLabel: { fontSize: 16, fontWeight: 'bold', color: 'white' },
   activeCategoryLabel: { color: 'white' },

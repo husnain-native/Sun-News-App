@@ -5,26 +5,28 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
-import { Feather, Ionicons, FontAwesome6 } from '@expo/vector-icons';
+import { Feather, FontAwesome6 } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
+import { useLanguage } from '../context/LanguageContext'; // ✅ Import Language Context
 
-const PODCAST_CATEGORY_ID = 31;  // Replace with the actual Podcast category ID
-
-const PodcastScreen = () => {
+const LatestNews = () => {
   const navigation = useNavigation();
+  const { language } = useLanguage(); // ✅ Get the current language from context
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
+  // API URLs for English and Urdu
+  const ENGLISH_API_URL = `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=24&_embed`; // Replace with the correct category ID for English
+  const URDU_API_URL = `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=33&_embed`; // Replace with the correct category ID for Urdu
+
   useEffect(() => {
     const fetchPodcasts = async () => {
       try {
-        const response = await fetch(
-          `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${PODCAST_CATEGORY_ID}&_embed`
-        );
+        const API_URL = language === 'en' ? ENGLISH_API_URL : URDU_API_URL; // ✅ Use the correct API URL based on language
+        const response = await fetch(API_URL);
         const data = await response.json();
         setPodcasts(data);
       } catch (error) {
@@ -36,7 +38,7 @@ const PodcastScreen = () => {
 
     fetchPodcasts();
     loadBookmarkedPosts();
-  }, []);
+  }, [language]); // ✅ Re-fetch when language changes
 
   const loadBookmarkedPosts = async () => {
     try {
@@ -93,7 +95,9 @@ const PodcastScreen = () => {
       >
         <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
+          <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={2}>
+            {title}
+          </Text>
         </View>
         <View style={styles.iconRow}>
           <Text style={styles.cardSubtitle}>{date}</Text>
@@ -119,10 +123,12 @@ const PodcastScreen = () => {
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
           <FontAwesome6 name="bolt" size={34} color="#BF272a" />
           <View style={styles.titleContainer}>
-            <Text style={styles.sectionTitle}>Breaking News</Text>
+            <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
+              {language === 'ur' ? 'بریکنگ نیوز' : 'Breaking News'}
+            </Text>
             <View style={styles.underline} />
           </View>
         </View>
@@ -142,13 +148,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
   titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', padding: 10, color: '#333' },
+  urduSectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 10,
+    color: '#333',
+    textAlign: 'right', // ✅ Align text to right for Urdu
+  },
   underline: { height: 4, backgroundColor: '#BF272a', width: '70%', marginTop: -6, borderRadius: 100, marginStart: 10 },
   headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
-  backButton: { padding: 1, marginRight: 10 },
   card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, paddingBottom: 10, elevation: 3 },
   cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   cardTextContainer: { padding: 12 },
   cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  urduTitle: { textAlign: 'right' }, // ✅ Align text to right for Urdu
   cardSubtitle: { fontSize: 14, color: '#666', marginTop: 2 },
   iconRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingBottom: 8 },
   iconGroup: { flexDirection: 'row' },
@@ -157,4 +170,4 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 }
 });
 
-export default PodcastScreen;
+export default LatestNews;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet, View, Dimensions } from 'react-native';
 import LatestNewsSection from '../components/LatestNewsSection';
 import BusinessSection from '../components/BusinessSection';
 import EntertainmentSection from '../components/EntertainmentSection';
@@ -9,16 +9,20 @@ import { newsData } from '../data/newsData';
 
 const HomeScreen = ({ navigation }) => {
   return (
+    <>
+    <View>
+      <View style={styles.categoryNavContainer}>
+
+      <CategoryNavigation style={styles.stickyHeader}/>
+      </View>
+    </View>
     <FlatList
       style={styles.container}
-      data={[
+      data={[ 
         {
           key: 'latestNewsSection',
           component: (
-            <View>
-              <CategoryNavigation />
-              <LatestNewsSection />
-            </View>
+            <LatestNewsSection />
           ),
         },
         {
@@ -39,11 +43,12 @@ const HomeScreen = ({ navigation }) => {
       nestedScrollEnabled={true}
       showsVerticalScrollIndicator={false}
     />
+</>
   );
 };
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-});
+  categoryNavContainer: {width: Dimensions.get('window').width, backgroundColor: '#fff'
+}});
 
 export default HomeScreen;

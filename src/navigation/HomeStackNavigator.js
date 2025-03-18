@@ -9,6 +9,7 @@ import CategoryScreen from '../screens/CategoryScreen';
 import BusinessScreen from '../screens/BusinessScreen';
 import ContactScreen from '../screens/ContactScreen';
 import CategoryNavigation from '../components/CategoryNavigation';
+import DrawerNavigator from './DrawerNavigator';
 
 const Stack = createStackNavigator();
 
@@ -24,8 +25,7 @@ const HomeStackNavigator = () => {
       <Stack.Screen name="Contact" component={ContactScreen} />
       <Stack.Screen name='navigation' component={CategoryNavigation}/>
       <Stack.Screen name="SportsScreen" component={SportsScreen} />
-
-
+      <Stack.Screen name='Drawer' component={DrawerNavigator} />
       <Stack.Screen name="Business" component={BusinessScreen} />
     </Stack.Navigator>
 

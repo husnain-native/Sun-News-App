@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 2,
+   
   },
   liveBox: {
     backgroundColor: "#E60000",

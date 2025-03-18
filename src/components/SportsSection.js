@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator, Share } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import axios from 'axios';
-import { Bookmark, Share2 } from 'lucide-react-native';
+import { 
+  View, Text, FlatList, Image, TouchableOpacity, 
+  StyleSheet, ActivityIndicator, Share, Alert 
+} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Bookmark, Share2 } from 'lucide-react-native';
 import { decode } from 'html-entities';
+import { useLanguage } from '../context/LanguageContext'; // Import Language Context
 
 const SportsSection = ({ navigation }) => {
+  const { language } = useLanguage(); // Get the current language from context
   const [sportsNews, setSportsNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [bookmarkedItems, setBookmarkedItems] = useState([]);
@@ -14,16 +18,22 @@ const SportsSection = ({ navigation }) => {
   useEffect(() => {
     fetchSportsNews();
     loadBookmarks();
-  }, []);
+  }, [language]); // Re-fetch when language changes
 
-  // Fetch Sports News
+  // Fetch Sports News based on selected language
   const fetchSportsNews = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed'
-      );
-      setSportsNews(response.data);
+      const API_URL = language === 'en'
+        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed' // English API
+        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=43&_embed'; // Urdu API (replace with correct category ID if needed)
+
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      setSportsNews(data);
     } catch (error) {
       console.error('Error fetching sports news:', error);
     } finally {
@@ -34,7 +44,7 @@ const SportsSection = ({ navigation }) => {
   // Load Bookmarked Items from AsyncStorage
   const loadBookmarks = async () => {
     try {
-      const storedBookmarks = await AsyncStorage.getItem('bookmarkedSports');
+      const storedBookmarks = await AsyncStorage.getItem('bookmarkedPosts');
       if (storedBookmarks) {
         setBookmarkedItems(JSON.parse(storedBookmarks));
       }
@@ -55,7 +65,7 @@ const SportsSection = ({ navigation }) => {
           // Add bookmark
           updatedBookmarks = [...prevBookmarks, item];
         }
-        AsyncStorage.setItem('bookmarkedSports', JSON.stringify(updatedBookmarks));
+        AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
         return updatedBookmarks;
       });
     } catch (error) {
@@ -67,7 +77,7 @@ const SportsSection = ({ navigation }) => {
   const shareNews = async (title, url) => {
     try {
       await Share.share({
-        message: `${title}\nRead more: ${url}`,
+        message: `${title}\n\nRead more: ${url}`,
       });
     } catch (error) {
       console.error('Error sharing news:', error);
@@ -98,7 +108,7 @@ const SportsSection = ({ navigation }) => {
       >
         <Image source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle} numberOfLines={3}>{decode(item.title.rendered)}</Text>
+          <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={3}>{decode(item.title.rendered)}</Text>
           <View style={styles.bottomRow}>
             <View style={styles.dateContainer}>
               <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" />
@@ -124,16 +134,32 @@ const SportsSection = ({ navigation }) => {
 
   return (
     <View style={styles.sectionContainer}>
-      <View style={styles.headerRow}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <MaterialCommunityIcons name="football" size={34} color="#BF272a" />
-          <Text style={styles.sectionTitle}>SPORTS</Text>
+      {/* Header Row */}
+      <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
+        {/* Icon + Text Container */}
+        <View style={{ flexDirection: language === 'ur' ? 'row-reverse' : 'row', alignItems: 'center' }}>
+          <MaterialCommunityIcons 
+            name="football" 
+            size={34} 
+            color="#BF272a" 
+            style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }} // ✅ Add space on the right in Urdu mode
+          />
+          <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
+            {language === 'ur' ? "کھیل" : "SPORTS"}
+          </Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Sports')}>
-          <Text style={styles.seeAll}>See All</Text>
+        {/* See All Button */}
+        <TouchableOpacity 
+          onPress={() => navigation.navigate('Sports')}
+          style={language === 'ur' ? { marginLeft: 10 } : null} // ✅ Add margin on the left in Urdu mode
+        >
+          <Text style={styles.seeAll}>
+            {language === 'ur' ? "مزید دیکھیں" : "See All"}
+          </Text>
         </TouchableOpacity>
       </View>
 
+      {/* News List */}
       <FlatList
         data={sportsNews.slice(0, 3)}
         keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
@@ -150,11 +176,23 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     backgroundColor: '#e3e1e1',
   },
+  headerRow: {
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: 15,
+  },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
-    marginLeft: 8,
-    color: '#333',
+    color: '#BF272a',
+    marginLeft: 10,
+  },
+  urduSectionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#BF272a',
+    textAlign: 'right',
+    marginRight: 10,
   },
   seeAll: {
     fontSize: 14,
@@ -165,12 +203,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 10,
     marginRight: 7,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginVertical: 15,
   },
   card: {
     flexDirection: 'row',
@@ -193,6 +225,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: '#222',
+  },
+  urduTitle: {
+    textAlign: 'right',
   },
   cardSubtitle: {
     fontSize: 12,
