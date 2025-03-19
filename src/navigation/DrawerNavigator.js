@@ -2,12 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { View, Text, Image, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useLanguage } from '../context/LanguageContext'; // ✅ Import custom hook
+import { useLanguage } from '../context/LanguageContext';
 import BottomTabNavigator from './BottomTabNavigator';
-import CategoryScreen from '../screens/CategoryScreen';
-import BookmarksScreen from '../screens/BookmarksScreen';
-import CategoryNavigation from '../components/CategoryNavigation';
-import HomeScreen from '../screens/HomeScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -54,14 +50,29 @@ const CustomDrawerContent = ({ navigation, language }) => {
 
   useEffect(() => {
     fetchCategories();
-  }, [language]); // Re-fetch when language changes
+  }, [language]);
 
   const handleCategoryPress = (category) => {
     setActiveCategory(category.id);
-    navigation.navigate('Category', {
-      categoryId: category.id,
-      categoryName: category.name,
-      language: language, // Pass language to CategoryScreen
+    navigation.navigate('BottomTabs', {
+      screen: 'HOME',
+      params: {
+        screen: 'Category',
+        params: {
+          categoryId: category.id,
+          categoryName: category.name,
+          language: language,
+        }
+      }
+    });
+  };
+
+  const handleHomePress = () => {
+    navigation.navigate('BottomTabs', {
+      screen: 'HOME',
+      params: {
+        screen: 'Home'
+      }
     });
   };
 
@@ -71,7 +82,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
         <Image source={require('../assets/sun-logo.png')} style={styles.drawerLogo} />
         <Text style={styles.drawerTitle}>SUN NEWS</Text>
       </View>
-
+      
       {loading && <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} />}
       {error && (
         <View style={styles.errorContainer}>
@@ -85,9 +96,9 @@ const CustomDrawerContent = ({ navigation, language }) => {
       <View style={styles.drawerItemsContainer}>
         {/* Home Menu Item */}
         <DrawerItem
-          label={language === 'en' ? 'Home' : 'ہوم'} // ✅ Dynamic label for Home
-          onPress={() => navigation.navigate('Home')}
-          labelStyle={styles.drawerLabel}
+          label={language === 'en' ? 'Home' : 'ہوم'}
+          onPress={handleHomePress}
+          labelStyle={[styles.drawerLabel, { textAlign: language === 'ur' ? 'right' : 'left' }]}
         />
 
         {/* Categories */}
@@ -96,7 +107,11 @@ const CustomDrawerContent = ({ navigation, language }) => {
             key={category.id}
             label={category.name}
             onPress={() => handleCategoryPress(category)}
-            labelStyle={[styles.drawerLabel, activeCategory === category.id && styles.activeCategoryLabel]}
+            labelStyle={[
+              styles.drawerLabel,
+              { textAlign: language === 'ur' ? 'right' : 'left' },
+              activeCategory === category.id && styles.activeCategoryLabel,
+            ]}
             style={[activeCategory === category.id && styles.activeCategoryBackground]}
           />
         ))}
@@ -106,7 +121,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
 };
 
 const DrawerNavigator = () => {
-  const { language, toggleLanguage } = useLanguage(); // ✅ Use custom hook
+  const { language, toggleLanguage } = useLanguage();
 
   return (
     <Drawer.Navigator
@@ -123,11 +138,7 @@ const DrawerNavigator = () => {
         drawerLabelStyle: { fontSize: 16, fontWeight: 'bold' },
       }}
     >
-      <Drawer.Screen name="Home" component={BottomTabNavigator} />
-      {/* <Drawer.Screen name='Home' component={HomeScreen}/> */}
-      <Drawer.Screen name="Category" component={CategoryScreen} initialParams={{ language }} />
-      <Drawer.Screen name="Navigation" component={CategoryNavigation} />
-      <Drawer.Screen name="Bookmarks" component={BookmarksScreen} />
+      <Drawer.Screen name="BottomTabs" component={BottomTabNavigator} />
     </Drawer.Navigator>
   );
 };
@@ -150,7 +161,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    // paddingHorizontal: 5,
   },
   titleLogo: { flexDirection: 'row', marginLeft: 60 },
   headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginLeft: 5 },

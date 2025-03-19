@@ -5,16 +5,18 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
-import { MaterialIcons, Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '../context/LanguageContext'; // Import Language Context
 
 const CategoryScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const { language } = useLanguage(); // Get the current language from context
 
   // Extract category and language params
-  const { categoryId, categoryName, language } = route.params || { language: 'en' }; // Default to English
+  const { categoryId, categoryName } = route.params || {};
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,19 +31,14 @@ const CategoryScreen = () => {
       if (categoryId !== undefined && categoryId !== null) {
         const API_URL =
           language === 'en'
-          ? `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
-          : `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
-
-        // console.log('Current Language:', language);
-        // console.log('API URL:', API_URL);
+            ? `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
+            : `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`;
 
         const response = await fetch(API_URL);
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
         }
         const data = await response.json();
-        // console.log('API Response:', data);
-
         setPosts(data);
       }
     } catch (error) {
@@ -112,7 +109,7 @@ const CategoryScreen = () => {
 
     const title = item.title?.rendered || 'No Title';
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150';
-    const date = item.date ? new Date(item.date).toDateString() : 'Date not available'; // Fallback if date is missing
+    const date = item.date ? new Date(item.date).toDateString() : 'Date not available';
     const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
 
     return (
@@ -130,54 +127,31 @@ const CategoryScreen = () => {
         })}
       >
         <Image source={{ uri: imageUrl }} style={styles.cardImage} />
-        <View style={[styles.cardTextContainer]}>
-          <Text style={[styles.cardTitle, language === 'ur' && styles.urduText]} 
-            numberOfLines={3}
-          >
+        <View style={styles.cardTextContainer}>
+          <Text style={[styles.cardTitle, language === 'ur' && styles.urduText]} numberOfLines={3}>
             {title}
           </Text>
         </View>
         <View style={[styles.iconRow, language === 'ur' && styles.urduIconRow]}>
-          {language === 'ur' ? (
-            <>
-              <View style={styles.iconGroup}>
-                <TouchableOpacity style={styles.iconButton} onPress={() => toggleBookmark(item)}>
-                  <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link)}>
-                  <MaterialCommunityIcons name="share-variant-outline" size={22} color="#bf272a" />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.sourceInfo}>
-                <Text style={[styles.cardSubtitle, language === 'ur' && styles.urduText]}>
-                  {date}
-                </Text>
-              </View>
-            </>
-          ) : (
-            <>
-              <View style={styles.sourceInfo}>
-                <Text style={[styles.cardSubtitle, language === 'ur' && styles.urduText]}>
-                  {date}
-                </Text>
-              </View>
-              <View style={styles.iconGroup}>
-                <TouchableOpacity style={styles.iconButton} onPress={() => toggleBookmark(item)}>
-                  <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton} onPress={() => sharePost(title, item.link)}>
-                  <MaterialCommunityIcons name="share-variant-outline" size={22} color="#bf272a" />
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
+          <View style={styles.dateContainer}>
+            <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{ marginEnd: 5 }} />
+            <Text style={styles.cardSubtitle}>{date}</Text>
+          </View>
+          <View style={styles.iconGroup}>
+            <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.iconButton}>
+              <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => sharePost(title, item.link)} style={styles.iconButton}>
+              <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableOpacity>
     );
   };
 
   if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
-  if (error) return <Text style={styles.errorText}>خرابی: {error}</Text>;
+  if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
 
   return (
     <View style={{ flex: 1 }}>
@@ -185,15 +159,10 @@ const CategoryScreen = () => {
         <CategoryNavigation />
       </View>
       <View style={styles.container}>
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, language === 'ur' && styles.rtlHeaderRow]}>
           <MaterialIcons name="category" size={34} color="#BF272a" />
-          <View style={styles.titleContainer}>
-            <Text 
-              style={[
-                styles.sectionTitle, 
-                language === 'ur' && styles.urduText
-              ]}
-            >
+          <View style={[styles.titleContainer, language === 'ur' && styles.rtlTitleContainer]}>
+            <Text style={styles.sectionTitle}>
               {categoryName ? categoryName.toUpperCase() : 'CATEGORY'}
             </Text>
             <View style={styles.underline} />
@@ -213,55 +182,100 @@ const CategoryScreen = () => {
 
 const styles = StyleSheet.create({
   categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
-  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 10, paddingTop: 10 },
-  titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', padding: 10, color: '#333' },
-  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, borderRadius: 100 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 5 },
-  backButton: { padding: 5, marginRight: 10 },
-  card: { backgroundColor: '#fff', borderRadius: 12, marginBottom: 15, elevation: 3 },
-  cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
-  cardTextContainer: { flex: 1, flexDirection: 'space-between', padding: 10, textAlign: 'right' },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    marginTop: 5
+  },
+  rtlHeaderRow: {
+    flexDirection: 'row-reverse', // Reverse the direction for Urdu
+  },
+  titleContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  },
+  rtlTitleContainer: {
+    alignItems: 'flex-end', // Align text to the right for Urdu
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 10,
+    color: '#333'
+  },
+  underline: {
+    height: 4,
+    backgroundColor: '#BF272a',
+    width: '70%',
+    marginTop: -7,
+    borderRadius: 100,
+    marginStart: 8
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    paddingBottom: 10,
+    elevation: 3
+  },
+  cardImage: {
+    width: '100%',
+    height: 180,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12
+  },
+  cardTextContainer: {
+    padding: 12
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222'
+  },
   urduText: {
-    textAlign: 'right',
-    color: '#000'
-    
+    textAlign: 'right', // Align text to the right for Urdu
+    fontFamily: 'NotoNastaliqUrdu', // Use a professional Urdu font
   },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 },
-  iconRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginTop: 10 
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2
   },
-  urduIconRow: { 
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 8
+  },
+  urduIconRow: {
     flexDirection: 'row-reverse', // Reverse layout for Urdu mode
   },
-  sourceInfo: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginHorizontal: 15,
-    marginBottom: 15
+  iconButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#EDEDED',
+    marginLeft: 10
   },
-  iconGroup: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginRight: 15,
-    marginBottom: 15
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  iconButton: { 
-    marginLeft: 10 // Adds space between icons
+  errorText: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: 'red',
+    marginTop: 20
   },
-  cardSubtitle: { 
-    fontSize: 14, 
-    color: '#666', 
-    textAlign: 'left' 
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
   },
-  urduContainer: {
-    alignItems: 'flex-start',
-  }
+  iconGroup: { flexDirection: 'row' },
 });
 
 export default CategoryScreen;

@@ -8,7 +8,7 @@ import ContactScreen from '../screens/ContactScreen';
 import PodcastScreen from '../screens/PodcastScreen';
 import LatestNews from '../screens/LatestNews';
 import { FontAwesome6 } from '@expo/vector-icons'; 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'; // Import MaterialCommunityIcons
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const Tab = createBottomTabNavigator();
 
@@ -22,7 +22,7 @@ const BottomTabNavigator = () => {
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarIcon: ({ color, size, focused }) => {
           let iconName;
-          let IconComponent = Ionicons; // Default icon component
+          let IconComponent = Ionicons;
 
           if (route.name === 'HOME') {
             iconName = 'home';
@@ -37,8 +37,8 @@ const BottomTabNavigator = () => {
               </View>
             );
           } else if (route.name === 'BREAKING') {
-            iconName = focused ? 'bolt' : 'bolt-lightning'; // ⚡ Lightning bolt effect
-            IconComponent = FontAwesome6; // Use FontAwesome6 for bolt icon
+            iconName = focused ? 'bolt' : 'bolt-lightning';
+            IconComponent = FontAwesome6;
           }
 
           return (
@@ -48,7 +48,7 @@ const BottomTabNavigator = () => {
           );
         },
         tabBarActiveTintColor: '#fff', 
-        tabBarInactiveTintColor: '#d9cccc', 
+        tabBarInactiveTintColor: '#d9cccc',
       })}
     >
       <Tab.Screen name="HOME" component={HomeStackNavigator} /> 

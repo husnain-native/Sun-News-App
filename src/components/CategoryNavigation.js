@@ -64,9 +64,23 @@ const CategoryNavigation = () => {
 
   const handleCategoryPress = (category) => {
     if (category.id === 'home') {
-      navigation.navigate('Home');
+      navigation.navigate('BottomTabs', {
+        screen: 'HOME',
+        params: {
+          screen: 'Home'
+        }
+      });
     } else {
-      navigation.navigate('Category', { categoryId: category.id, categoryName: category.name });
+      navigation.navigate('BottomTabs', {
+        screen: 'HOME',
+        params: {
+          screen: 'Category',
+          params: {
+            categoryId: category.id,
+            categoryName: category.name
+          }
+        }
+      });
     }
   };
 

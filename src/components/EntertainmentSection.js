@@ -7,26 +7,26 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decode } from 'html-entities';
-import { useLanguage } from '../context/LanguageContext'; // Import Language Context
+import { useLanguage } from '../context/LanguageContext';
 
 const EntertainmentSection = ({ navigation }) => {
-  const { language } = useLanguage(); // Get the current language from context
+  const { language } = useLanguage();
+  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [entertainmentNews, setEntertainmentNews] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [bookmarks, setBookmarks] = useState([]);
 
   useEffect(() => {
     fetchEntertainmentNews();
-    loadBookmarks();
-  }, [language]); // Re-fetch when language changes
+    loadBookmarkedPosts();
+  }, [language]);
 
   // Fetch Entertainment News based on selected language
   const fetchEntertainmentNews = async () => {
     try {
       setLoading(true);
       const API_URL = language === 'en'
-        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed' // English API
-        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=37&_embed'; // Urdu API (replace with correct category ID if needed)
+        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed'
+        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=37&_embed';
 
       const response = await fetch(API_URL);
       if (!response.ok) {
@@ -42,32 +42,30 @@ const EntertainmentSection = ({ navigation }) => {
   };
 
   // Load saved bookmarks
-  const loadBookmarks = async () => {
+  const loadBookmarkedPosts = async () => {
     try {
-      const storedBookmarks = await AsyncStorage.getItem('bookmarkedPosts');
-      if (storedBookmarks) {
-        setBookmarks(JSON.parse(storedBookmarks));
+      const savedPosts = await AsyncStorage.getItem('bookmarkedPosts');
+      if (savedPosts) {
+        setBookmarkedPosts(JSON.parse(savedPosts));
       }
     } catch (error) {
-      console.error('Error loading bookmarks:', error);
+      console.error('Failed to load bookmarks:', error);
     }
   };
 
   // Toggle bookmark
-  const toggleBookmark = async (newsItem) => {
-    try {
-      let updatedBookmarks = [...bookmarks];
-      const index = updatedBookmarks.findIndex(item => item.id === newsItem.id);
-      if (index > -1) {
-        updatedBookmarks.splice(index, 1); // Remove if already bookmarked
-      } else {
-        updatedBookmarks.push(newsItem); // Add if not bookmarked
-      }
-      setBookmarks(updatedBookmarks);
-      await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
-    } catch (error) {
-      console.error('Error updating bookmarks:', error);
+  const toggleBookmark = async (post) => {
+    let updatedBookmarks = [...bookmarkedPosts];
+    const index = updatedBookmarks.findIndex(item => item.id === post.id);
+
+    if (index !== -1) {
+      updatedBookmarks.splice(index, 1); // Remove if already bookmarked
+    } else {
+      updatedBookmarks.push(post); // Add if not bookmarked
     }
+
+    setBookmarkedPosts(updatedBookmarks);
+    await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
   // Share post
@@ -84,19 +82,25 @@ const EntertainmentSection = ({ navigation }) => {
   // Render News Item
   const renderNewsItem = ({ item }) => {
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-    const isBookmarked = bookmarks.some(b => b.id === item.id);
+    const isBookmarked = bookmarkedPosts.some(b => b.id === item.id);
 
     return (
       <TouchableOpacity 
         style={styles.card}
-        onPress={() => navigation.navigate('NewsDetails', { 
-          news: {
-            title: decode(item.title.rendered),
-            content: decode(item.content.rendered),
-            description: decode(item.excerpt.rendered),
-            image: imageUrl,
-            source: { name: 'Sun News' },
-            publishedAt: item.date
+        onPress={() => navigation.navigate('BottomTabs', {
+          screen: 'HOME',
+          params: {
+            screen: 'NewsDetails',
+            params: {
+              news: {
+                title: decode(item.title.rendered),
+                content: decode(item.content.rendered),
+                description: decode(item.excerpt.rendered),
+                image: imageUrl,
+                source: { name: 'Sun News' },
+                publishedAt: item.date
+              }
+            }
           }
         })}
       >
@@ -106,18 +110,16 @@ const EntertainmentSection = ({ navigation }) => {
             style={styles.cardImage} 
           />
           <View style={styles.cardContent}>
-            <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={2}>{decode(item.title.rendered)}</Text>
+            <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={2}>
+              {decode(item.title.rendered)}
+            </Text>
             <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
             <View style={styles.iconRow}>
               <TouchableOpacity onPress={() => toggleBookmark(item)}>
-                <MaterialCommunityIcons 
-                  name={isBookmarked ? 'bookmark' : 'bookmark-outline'} 
-                  size={24} 
-                  color={isBookmarked ? '#bf272a' : 'gray'} 
-                />
+                <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => sharePost(item)}>
-                <Share2 size={24} color="#bf272a" style={{ marginLeft: 10 }} />
+                <Share2 size={20} color="#bf272a" style={{ marginLeft: 10 }} />
               </TouchableOpacity>
             </View>
           </View>
@@ -136,7 +138,7 @@ const EntertainmentSection = ({ navigation }) => {
             name="movie-open" 
             size={40} 
             color="#BF272a" 
-            style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }} // ✅ Add space on the right in Urdu mode
+            style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }}
           />
           <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
             {language === 'ur' ? "تفریح" : "ENTERTAINMENT"}
@@ -144,8 +146,13 @@ const EntertainmentSection = ({ navigation }) => {
         </View>
         {/* See All Button */}
         <TouchableOpacity 
-          onPress={() => navigation.navigate('Entertainment')}
-          style={language === 'ur' ? { marginLeft: 10 } : null} // ✅ Add margin on the left in Urdu mode
+          onPress={() => navigation.navigate('BottomTabs', {
+            screen: 'HOME',
+            params: {
+              screen: 'Entertainment'
+            }
+          })}
+          style={language === 'ur' ? { marginLeft: 10 } : null}
         >
           <Text style={styles.seeAll}>
             {language === 'ur' ? "مزید دیکھیں" : "See All"}

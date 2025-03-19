@@ -141,7 +141,15 @@ const BusinessSection = ({ navigation }) => {
             </Text>
           </View>
           {/* See All Button */}
-          <TouchableOpacity onPress={() => navigation.navigate('BusinessScreen')} style={language === 'ur' ? { marginLeft: 10 } : null}>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('BottomTabs', {
+              screen: 'HOME',
+              params: {
+                screen: 'Business'
+              }
+            })} 
+            style={language === 'ur' ? { marginLeft: 10 } : null}
+          >
             <Text style={styles.seeAll} >{language === 'ur' ? " مزید دیکھیں" : "See All"}</Text>
           </TouchableOpacity>
         </View>

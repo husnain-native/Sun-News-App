@@ -10,7 +10,7 @@ import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLanguage } from '../context/LanguageContext'; // Import Language Context
 
-const LatestNews = () => {
+const PodcastScreen = () => {
   const navigation = useNavigation();
   const { language } = useLanguage(); // Get the current language from context
   const [podcasts, setPodcasts] = useState([]);
@@ -90,18 +90,22 @@ const LatestNews = () => {
    
     return (
       <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('NewsDetails', {
-          news: {
-            id: item.id,
-            title: item.title.rendered,
-            content: item.content.rendered,
-            description: item.excerpt.rendered,
-            image: imageUrl,
-            source: { name: 'Sun News' },
-            publishedAt: item.date
+      style={styles.card} 
+      onPress={() => navigation.navigate('BottomTabs', {
+        screen: 'HOME',
+        params: {
+          screen: 'NewsDetails',
+          params: {
+            news: { 
+              title: item.title.rendered, 
+              image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
+              content: item.content?.rendered ?? '<p>No content available.</p>',
+              source: { name: 'Sun News' }, 
+              publishedAt: item.date
+            } 
           }
-        })}
+        }
+      })}
       >
         <Image
           source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl}
@@ -253,4 +257,4 @@ const styles = StyleSheet.create({
   iconGroup: { flexDirection: 'row' },
 });
 
-export default LatestNews;
+export default PodcastScreen;

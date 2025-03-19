@@ -150,8 +150,13 @@ const SportsSection = ({ navigation }) => {
         </View>
         {/* See All Button */}
         <TouchableOpacity 
-          onPress={() => navigation.navigate('Sports')}
-          style={language === 'ur' ? { marginLeft: 10 } : null} // ✅ Add margin on the left in Urdu mode
+          onPress={() => navigation.navigate('BottomTabs', {
+            screen: 'HOME',
+            params: {
+              screen: 'SportsScreen'
+            }
+          })}
+          style={language === 'ur' ? { marginLeft: 10 } : null}
         >
           <Text style={styles.seeAll}>
             {language === 'ur' ? "مزید دیکھیں" : "See All"}

@@ -1,135 +1,265 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { Bookmark, Share2 } from 'lucide-react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import {
+  View, Text, FlatList, Image, TouchableOpacity,
+  StyleSheet, ActivityIndicator, Dimensions, Share, Alert
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Bookmark } from 'lucide-react-native';
+import { MaterialCommunityIcons, FontAwesome } from '@expo/vector-icons';
+import CategoryNavigation from '../components/CategoryNavigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useLanguage } from '../context/LanguageContext'; // Import Language Context
 
-const ENTERTAINMENT_NEWS_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed'; // Adjust category ID
-
-const EntertainmentScreen = ({ navigation }) => {
-  const [entertainmentNews, setEntertainmentNews] = useState([]);
+const LatestNews = () => {
+  const navigation = useNavigation();
+  const { language } = useLanguage(); // Get the current language from context
+  const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
   useEffect(() => {
-    const fetchEntertainmentNews = async () => {
+    fetchPodcasts();
+    loadBookmarkedPosts();
+  }, [language]); // Re-fetch when language changes
+
+  // Fetch podcasts based on selected language
+  const fetchPodcasts = async () => {
+    setLoading(true);
+    try {
+      const API_URL = language === 'en'
+        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed' // English API
+        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=37&_embed'; // Urdu API
+
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      const data = await response.json();
+      setPodcasts(data);
+    } catch (error) {
+      console.error('Error fetching podcasts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load saved bookmarks
+  const loadBookmarkedPosts = async () => {
+    try {
+      const savedPosts = await AsyncStorage.getItem('bookmarkedPosts');
+      if (savedPosts) {
+        setBookmarkedPosts(JSON.parse(savedPosts));
+      }
+    } catch (error) {
+      console.error('Failed to load bookmarks:', error);
+    }
+  };
+
+  // Toggle bookmark
+  const toggleBookmark = async (podcast) => {
+    let updatedBookmarks = [...bookmarkedPosts];
+    const index = updatedBookmarks.findIndex(item => item.id === podcast.id);
+
+    if (index !== -1) {
+      updatedBookmarks.splice(index, 1); // Remove if already bookmarked
+    } else {
+      updatedBookmarks.push(podcast); // Add if not bookmarked
+    }
+
+    setBookmarkedPosts(updatedBookmarks);
+    await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
+  };
+
+  // Share post
+  const sharePost = async (title, link) => {
       try {
-        const response = await axios.get(ENTERTAINMENT_NEWS_URL);
-        setEntertainmentNews(response.data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+        await Share.share({ message: `${link}` });
+      } catch (error) {
+        console.error('Error sharing post:', error);
       }
     };
-
-    fetchEntertainmentNews();
-  }, []);
-
-  const renderNewsItem = ({ item }) => {
-    const title = item.title.rendered;
-    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-    const date = new Date(item.date).toDateString();
-
+  
+    const renderNewsItem = ({ item }) => {
+     const title = item?.title?.rendered || 'No Title';
+     const imageUrl = item?._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+     const date = new Date(item?.date).toDateString();
+     
+     // Check if the current item is bookmarked
+     const isBookmarked = bookmarkedPosts.some(bookmark => bookmark.id === item.id);
+   
     return (
-      <TouchableOpacity 
-        style={styles.card} 
-        onPress={() => navigation.navigate('NewsDetail', { 
-          news: { 
-            title: item.title.rendered, 
-            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
-            content: item.content?.rendered ?? '<p>No content available.</p>',
-            source: { name: 'Sun News' }, 
-            publishedAt: item.date
-          } 
-        })}
+      <TouchableOpacity
+      style={styles.card} 
+      onPress={() => navigation.navigate('BottomTabs', {
+        screen: 'HOME',
+        params: {
+          screen: 'NewsDetails',
+          params: {
+            news: { 
+              title: item.title.rendered, 
+              image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
+              content: item.content?.rendered ?? '<p>No content available.</p>',
+              source: { name: 'Sun News' }, 
+              publishedAt: item.date
+            } 
+          }
+        }
+      })}
       >
-        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
+        <Image
+          source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl}
+          style={styles.cardImage}
+        />
         <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
-        </View>
-        <View style={styles.iconRow}>
-          <View style={styles.sourceInfo}>
-            <Text style={styles.cardSubtitle}>{date}</Text>
-          </View>
-          <View style={styles.iconGroup}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Bookmark size={20} color="#BF272a" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Share2 size={20} color="#BF272a" />
-            </TouchableOpacity>
-          </View>
-        </View>
+          <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={2}>
+            {item.title.rendered}
+          </Text>
+                </View>
+            <View style={styles.iconRow}>
+                    <View style={styles.dateContainer}>
+                      <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{marginEnd: 5}} />
+                      <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+                    </View>
+                    <View style={styles.iconGroup}>
+                      <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.iconButton}>
+                        <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => sharePost(title, item.link)} style={styles.iconButton}>
+                        <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
       </TouchableOpacity>
     );
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
-  if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
+  if (loading) {
+    return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <MaterialIcons name="movie" size={34} color="#BF272a" />
-        <View style={styles.titleContainer}>
-          <Text style={styles.sectionTitle}>ENTERTAINMENT NEWS</Text>
-          <View style={styles.underline} />
-        </View>
+    <View style={{ flex: 1 }}>
+      <View style={styles.categoryNavContainer}>
+        <CategoryNavigation />
       </View>
-      <FlatList
-        data={entertainmentNews}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderNewsItem}
-        showsVerticalScrollIndicator={false}
-      />
+      <View style={styles.container}>
+        <View style={[styles.headerRow, language === 'ur' && styles.rtlHeaderRow]}>
+        <MaterialCommunityIcons 
+            name="movie-open" 
+            size={40} 
+            color="#BF272a" 
+            style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }}
+          />
+          <View style={[styles.titleContainer, language === 'ur' && styles.rtlTitleContainer]}>
+            <Text style={styles.sectionTitle}>{language === 'ur' ? "تفریح" : "ENTERTAINMENT"}</Text>
+            <View style={styles.underline} />
+          </View>
+        </View>
+        <FlatList
+          data={podcasts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderNewsItem}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
   container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
-  titleContainer: { flexDirection: 'column', alignItems: 'flex-start' },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', marginStart: 5, padding: 10, color: '#333' },
-  underline: { height: 4, backgroundColor: '#BF272a', width: '60%', marginTop: -7, marginStart: 14, borderRadius: 100 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 15 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    marginTop: 5
+  },
+  rtlHeaderRow: {
+    flexDirection: 'row-reverse', // Reverse the direction for Urdu
+  },
+  titleContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start'
+  },
+  rtlTitleContainer: {
+    alignItems: 'flex-end', // Align text to the right for Urdu
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 10,
+    color: '#333'
+  },
+  underline: {
+    height: 4,
+    backgroundColor: '#BF272a',
+    width: '70%',
+    marginTop: -7,
+    borderRadius: 100,
+    marginStart: 8
+  },
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 15,
     paddingBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-    overflow: 'hidden',
+    elevation: 3
   },
-  cardImage: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
-  cardTextContainer: { padding: 12 },
-  cardTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
-  cardSubtitle: { fontSize: 14, color: '#666', marginTop: 2 },
+  cardImage: {
+    width: '100%',
+    height: 180,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12
+  },
+  cardTextContainer: {
+    padding: 12
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222'
+  },
+  urduTitle: {
+    textAlign: 'right', // Align text to the right for Urdu
+    fontFamily: 'NotoNastaliqUrdu', // Use a professional Urdu font
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2
+  },
   iconRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingBottom: 8,
-  },
-  sourceInfo: {
-    flexDirection: 'column',
-  },
-  iconGroup: {
-    flexDirection: 'row',
+    paddingBottom: 8
   },
   iconButton: {
     padding: 6,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-    marginLeft: 10,
+    backgroundColor: '#EDEDED',
+    marginLeft: 10
   },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 18, textAlign: 'center', color: 'red', marginTop: 20 },
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  errorText: {
+    fontSize: 18,
+    textAlign: 'center',
+    color: 'red',
+    marginTop: 20
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  iconGroup: { flexDirection: 'row' },
 });
 
-export default EntertainmentScreen;
+export default LatestNews;
