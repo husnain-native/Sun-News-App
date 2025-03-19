@@ -29,8 +29,8 @@ const CategoryScreen = () => {
       if (categoryId !== undefined && categoryId !== null) {
         const API_URL =
           language === 'en'
-          ? `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
-          : `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
+          ? `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
+          : `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
 
         // console.log('Current Language:', language);
         // console.log('API URL:', API_URL);

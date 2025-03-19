@@ -93,6 +93,7 @@ const LatestNewsSection = () => {
         horizontal
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderNewsItem}
+        inverted={language === 'ur'}
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled={true}
       />

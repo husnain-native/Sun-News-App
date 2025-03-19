@@ -71,7 +71,10 @@ const BookmarkScreen = ({ navigation }) => {
           <Text style={styles.cardTitle} numberOfLines={2}>{title}</Text>
         </View>
         <View style={styles.iconRow}>
-          <Text style={styles.cardSubtitle}>{date}</Text>
+          <View style={styles.dateContainer}>
+                        <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{marginEnd: 5}} />
+                        <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+                      </View>
           <View style={styles.iconGroup}>
             <TouchableOpacity onPress={() => removeBookmark(item.id)} style={styles.iconButton}>
               <FontAwesome name="bookmark" size={20} color="#BF272a" />
@@ -136,6 +139,11 @@ const styles = StyleSheet.create({
   iconButton: { padding: 6, borderRadius: 8, backgroundColor: '#EDEDED', marginLeft: 10 },
   loader: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   noBookmarks: { fontSize: 16, textAlign: 'center', marginTop: 20, color: 'gray' }
+  ,
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 export default BookmarkScreen;
