@@ -5,6 +5,7 @@ import BusinessSection from '../components/BusinessSection';
 import EntertainmentSection from '../components/EntertainmentSection';
 import SportsSection from '../components/SportsSection';
 import CategoryNavigation from '../components/CategoryNavigation';
+import AdvertisementBanner from '../components/AdvertisementBanner';
 import { newsData } from '../data/newsData';
 
 const HomeScreen = ({ navigation }) => {
@@ -12,8 +13,7 @@ const HomeScreen = ({ navigation }) => {
     <>
     <View>
       <View style={styles.categoryNavContainer}>
-
-      <CategoryNavigation style={styles.stickyHeader}/>
+        <CategoryNavigation style={styles.stickyHeader}/>
       </View>
     </View>
     <FlatList
@@ -24,6 +24,10 @@ const HomeScreen = ({ navigation }) => {
           component: (
             <LatestNewsSection />
           ),
+        },
+        {
+          key: 'advertisementBanner',
+          component: <AdvertisementBanner />,
         },
         {
           key: 'businessSection',
@@ -43,12 +47,16 @@ const HomeScreen = ({ navigation }) => {
       nestedScrollEnabled={true}
       showsVerticalScrollIndicator={false}
     />
-</>
+    </>
   );
 };
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  categoryNavContainer: {width: Dimensions.get('window').width, backgroundColor: '#fff'
-}});
+  categoryNavContainer: {
+    width: Dimensions.get('window').width, 
+    backgroundColor: '#fff'
+  }
+});
 
 export default HomeScreen;

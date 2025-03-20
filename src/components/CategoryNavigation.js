@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Linking } from 'react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
 import { useLanguage } from '../context/LanguageContext'; // ✅ Import Language Context
 import LiveBadge from './LiveBadge';
@@ -84,6 +84,15 @@ const CategoryNavigation = () => {
     }
   };
 
+  const handleLivePress = async () => {
+    const youtubeUrl = 'https://www.youtube.com/@sunnewshd'; // Replace with your actual YouTube channel URL
+    try {
+      await Linking.openURL(youtubeUrl);
+    } catch (error) {
+      console.error('Error opening YouTube:', error);
+    }
+  };
+
   return (
     <View>
       {/* Category List */}
@@ -129,7 +138,7 @@ const CategoryNavigation = () => {
         </ScrollView>
 
         {/* Live Badge */}
-        <TouchableOpacity onPress={() => navigation.navigate('Live')}>
+        <TouchableOpacity onPress={handleLivePress}>
           <LiveBadge />
         </TouchableOpacity>
       </View>
