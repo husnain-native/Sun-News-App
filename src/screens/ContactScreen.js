@@ -10,16 +10,16 @@ const FollowUsScreen = () => {
     let url = "";
     switch (platform) {
       case "facebook":
-        url = "https://www.facebook.com/SunNews";
+        url = "https://www.facebook.com/people/Sun-News/61573097942664/";
         break;
       case "twitter":
-        url = "https://www.twitter.com/SunNews";
+        url = "https://twitter.com//SunNewsOfficial";
         break;
       case "instagram":
-        url = "https://www.instagram.com/SunNews";
+        url = "https://www.instagram.com/sunnewshdpk";
         break;
       case "youtube":
-        url = "https://www.youtube.com/SunNews";
+        url = "https://www.youtube.com/channel/UCzislLLPhE4aRd-k-WLdLVQ";
         break;
     }
     Linking.openURL(url).catch(() => alert("Failed to open link."));
@@ -41,8 +41,8 @@ const FollowUsScreen = () => {
         {/* Introduction */}
         <Text style={styles.appName}>SUN NEWS</Text>
         <Text style={styles.introText}>
-        <Text style={{ fontWeight: "bold", color: "#bf272a", fontSize: 20 }}>Sun News</Text> brings you authentic, fast, and reliable news from Pakistan and across the globe. 🌍📰 Stay
-          informed with breaking headlines, in-depth analysis, and trending stories – anytime, anywhere! 📲🔥
+        <Text style={{ fontWeight: "bold", color: "#bf272a", fontSize: 20 }}>Sun News</Text> brings you authentic, fast, and reliable news from Pakistan and across the globe. Stay
+          informed anytime, anywhere!
         </Text>
 
         {/* Social Media Links */}

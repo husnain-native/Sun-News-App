@@ -30,7 +30,7 @@ const LatestNewsSection = () => {
       } catch (error) {
         setError(error.message);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
 
@@ -80,7 +80,7 @@ const LatestNewsSection = () => {
     );
   };
 
-  if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
+
   if (error) {
     Alert.alert('Error', `Failed to load latest news: ${error}`);
     return null;

@@ -24,7 +24,13 @@ const HomeStackNavigator = () => {
     >
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Category" component={CategoryScreen} />
-      <Stack.Screen name="NewsDetails" component={NewsDetailsScreen} />
+      <Stack.Screen 
+        name="NewsDetails" 
+        component={NewsDetailsScreen}
+        options={({ route }) => ({ 
+          params: route.params 
+        })}
+      />
       <Stack.Screen name="Breaking" component={LatestNews} />
       <Stack.Screen name="Podcast" component={PodcastScreen} />
       <Stack.Screen name="Contact" component={ContactScreen} />

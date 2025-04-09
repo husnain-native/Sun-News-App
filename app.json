@@ -2,10 +2,9 @@
   "expo": {
     "name": "SunNews",
     "slug": "SunNews",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./src/assets/sun-logo.png",
-
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -19,13 +18,17 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/sun-logo.png",
-
         "backgroundColor": "#bf272a"
-      }
+      },
+      "package": "com.husnainarif1.SunNews"
     },
     "web": {
-    "favicon": "./src/assets/sun-logo.png"
-
+      "favicon": "./src/assets/sun-logo.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "b36b0c38-75d7-4457-a33d-5adcf0f6906e"
+      }
     }
   }
 }

@@ -13,7 +13,7 @@ const EntertainmentSection = ({ navigation }) => {
   const { language } = useLanguage();
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [entertainmentNews, setEntertainmentNews] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchEntertainmentNews();
@@ -23,7 +23,7 @@ const EntertainmentSection = ({ navigation }) => {
   // Fetch Entertainment News based on selected language
   const fetchEntertainmentNews = async () => {
     try {
-      setLoading(true);
+      setLoading(false);
       const API_URL = language === 'en'
         ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed'
         : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=37&_embed';
@@ -55,17 +55,31 @@ const EntertainmentSection = ({ navigation }) => {
 
   // Toggle bookmark
   const toggleBookmark = async (post) => {
-    let updatedBookmarks = [...bookmarkedPosts];
-    const index = updatedBookmarks.findIndex(item => item.id === post.id);
-
-    if (index !== -1) {
-      updatedBookmarks.splice(index, 1); // Remove if already bookmarked
-    } else {
-      updatedBookmarks.push(post); // Add if not bookmarked
+    try {
+      // First get all existing bookmarks
+      const storedBookmarks = await AsyncStorage.getItem('bookmarkedPosts');
+      let existingBookmarks = storedBookmarks ? JSON.parse(storedBookmarks) : [];
+      
+      // Check if the item is already bookmarked
+      const isBookmarked = existingBookmarks.some(item => item.id === post.id);
+      
+      let updatedBookmarks;
+      if (isBookmarked) {
+        // Remove bookmark
+        updatedBookmarks = existingBookmarks.filter(item => item.id !== post.id);
+      } else {
+        // Add bookmark
+        updatedBookmarks = [...existingBookmarks, post];
+      }
+      
+      // Save to AsyncStorage
+      await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
+      
+      // Update local state
+      setBookmarkedPosts(updatedBookmarks);
+    } catch (error) {
+      console.error('Error saving bookmark:', error);
     }
-
-    setBookmarkedPosts(updatedBookmarks);
-    await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
   // Share post

@@ -5,7 +5,7 @@ const AdvertisementBanner = () => {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/banner.jpg')}
+        source={require('../assets/ads.jpg')}
         style={styles.image}
         resizeMode="cover"
       />
@@ -16,7 +16,7 @@ const AdvertisementBanner = () => {
 const styles = StyleSheet.create({
   container: {
     width: Dimensions.get('window').width,
-    height: 100,
+    height: 80,
     backgroundColor: '#fff',
     marginVertical: 10,
     paddingHorizontal: 10,

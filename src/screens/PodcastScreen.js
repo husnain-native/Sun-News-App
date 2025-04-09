@@ -60,7 +60,7 @@ const PodcastScreen = () => {
   const toggleBookmark = async (podcast) => {
     let updatedBookmarks = [...bookmarkedPosts];
     const index = updatedBookmarks.findIndex(item => item.id === podcast.id);
-
+    
     if (index !== -1) {
       updatedBookmarks.splice(index, 1); // Remove if already bookmarked
     } else {
@@ -70,66 +70,67 @@ const PodcastScreen = () => {
     setBookmarkedPosts(updatedBookmarks);
     await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
-
-  // Share post
+ 
   const sharePost = async (title, link) => {
-      try {
-        await Share.share({ message: `${link}` });
-      } catch (error) {
-        console.error('Error sharing post:', error);
-      }
-    };
-  
-    const renderNewsItem = ({ item }) => {
-     const title = item?.title?.rendered || 'No Title';
-     const imageUrl = item?._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-     const date = new Date(item?.date).toDateString();
-     
-     // Check if the current item is bookmarked
-     const isBookmarked = bookmarkedPosts.some(bookmark => bookmark.id === item.id);
-   
+    try {
+      await Share.share({ message: `${link}` });
+    } catch (error) {
+      console.error('Error sharing post:', error);
+    }
+  };
+
+  const renderPodcastItem = ({ item }) => {
+    if (!item || !item.id) return null;
+
+    const title = item.title?.rendered || 'No Title';
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150';
+    const date = item.date ? new Date(item.date).toDateString() : 'Date not available';
+    const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
+
+    // Check for both video URL types
+    const videoUrl = item.tie_video_url || item.tic_video_url;
+
     return (
       <TouchableOpacity
-      style={styles.card} 
-      onPress={() => navigation.navigate('BottomTabs', {
-        screen: 'HOME',
-        params: {
-          screen: 'NewsDetails',
+        style={styles.card}
+        onPress={() => navigation.navigate('BottomTabs', {
+          screen: 'HOME',
           params: {
-            news: { 
-              title: item.title.rendered, 
-              image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
-              content: item.content?.rendered ?? '<p>No content available.</p>',
-              source: { name: 'Sun News' }, 
-              publishedAt: item.date
-            } 
+            screen: 'NewsDetails',
+            params: {
+              news: {
+                title: item.title.rendered,
+                content: item.content.rendered,
+                description: item.excerpt.rendered,
+                image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
+                source: { name: 'Sun News' },
+                publishedAt: item.date,
+                videoUrl: videoUrl // Pass the video URL if present
+              }
+            }
           }
-        }
-      })}
+        })}
       >
-        <Image
-          source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl}
-          style={styles.cardImage}
-        />
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
-          <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={2}>
-            {item.title.rendered}
+          <Text style={[styles.cardTitle, language === 'ur' && styles.urduText]} numberOfLines={3}>
+            {title}
           </Text>
-                </View>
-            <View style={styles.iconRow}>
-                    <View style={styles.dateContainer}>
-                      <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{marginEnd: 5}} />
-                      <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
-                    </View>
-                    <View style={styles.iconGroup}>
-                      <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.iconButton}>
-                        <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => sharePost(title, item.link)} style={styles.iconButton}>
-                        <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+        </View>
+        <View style={[styles.iconRow, language === 'ur' && styles.urduIconRow]}>
+          <View style={styles.dateContainer}>
+            <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{ marginEnd: 5 }} />
+            <Text style={styles.cardSubtitle}>{date}</Text>
+          </View>
+          <View style={styles.iconGroup}>
+            <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.iconButton}>
+              <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => sharePost(title, item.link)} style={styles.iconButton}>
+              <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -154,7 +155,7 @@ const PodcastScreen = () => {
         <FlatList
           data={podcasts}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={renderNewsItem}
+          renderItem={renderPodcastItem}
           showsVerticalScrollIndicator={false}
         />
       </View>
@@ -255,6 +256,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   iconGroup: { flexDirection: 'row' },
+  urduText: {
+    textAlign: 'right', // Align text to the right for Urdu
+  },
+  urduIconRow: {
+    flexDirection: 'row-reverse', // Reverse the direction for Urdu
+  },
 });
 
 export default PodcastScreen;

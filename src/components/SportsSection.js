@@ -56,18 +56,27 @@ const SportsSection = ({ navigation }) => {
   // Toggle Bookmark (Save or Remove)
   const toggleBookmark = async (item) => {
     try {
-      setBookmarkedItems((prevBookmarks) => {
-        let updatedBookmarks;
-        if (prevBookmarks.some((news) => news.id === item.id)) {
-          // Remove bookmark
-          updatedBookmarks = prevBookmarks.filter((news) => news.id !== item.id);
-        } else {
-          // Add bookmark
-          updatedBookmarks = [...prevBookmarks, item];
-        }
-        AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
-        return updatedBookmarks;
-      });
+      // First get all existing bookmarks
+      const storedBookmarks = await AsyncStorage.getItem('bookmarkedPosts');
+      let existingBookmarks = storedBookmarks ? JSON.parse(storedBookmarks) : [];
+      
+      // Check if the item is already bookmarked
+      const isBookmarked = existingBookmarks.some((news) => news.id === item.id);
+      
+      let updatedBookmarks;
+      if (isBookmarked) {
+        // Remove bookmark
+        updatedBookmarks = existingBookmarks.filter((news) => news.id !== item.id);
+      } else {
+        // Add bookmark
+        updatedBookmarks = [...existingBookmarks, item];
+      }
+      
+      // Save to AsyncStorage
+      await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
+      
+      // Update local state
+      setBookmarkedItems(updatedBookmarks);
     } catch (error) {
       console.error('Error saving bookmark:', error);
     }
@@ -129,7 +138,7 @@ const SportsSection = ({ navigation }) => {
   };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
+    // return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
   }
 
   return (

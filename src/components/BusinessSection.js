@@ -1,28 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
-  StyleSheet, ActivityIndicator, Share, Alert 
+  StyleSheet, Share, Alert 
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Bookmark } from 'lucide-react-native';
+import { Bookmark, Share2 } from 'lucide-react-native';
 import { decode } from 'html-entities';
-import { useLanguage } from '../context/LanguageContext'; // ✅ Import Language Context
+import { useLanguage } from '../context/LanguageContext';
 
 const BusinessSection = ({ navigation }) => {
-  const { language } = useLanguage(); // ✅ Get the current language from context
+  const { language } = useLanguage();
   const [businessNews, setBusinessNews] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
   useEffect(() => {
     fetchNews();
     loadBookmarkedPosts();
-  }, [language]); // ✅ Re-fetch when language changes
+  }, [language]);
 
-  // Fetch business news based on selected language
   const fetchNews = async () => {
-    setLoading(true);
     try {
       const API_URL = language === 'en'
         ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=19&_embed'
@@ -36,12 +33,9 @@ const BusinessSection = ({ navigation }) => {
       setBusinessNews(data);
     } catch (error) {
       console.error('Error fetching business news:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Load saved bookmarks
   const loadBookmarkedPosts = async () => {
     try {
       const savedPosts = await AsyncStorage.getItem('bookmarkedPosts');
@@ -53,22 +47,20 @@ const BusinessSection = ({ navigation }) => {
     }
   };
 
-  // Toggle bookmark
   const toggleBookmark = async (newsItem) => {
     let updatedBookmarks = [...bookmarkedPosts];
     const index = updatedBookmarks.findIndex(item => item.id === newsItem.id);
 
     if (index !== -1) {
-      updatedBookmarks.splice(index, 1); // Remove if already bookmarked
+      updatedBookmarks.splice(index, 1);
     } else {
-      updatedBookmarks.push(newsItem); // Add if not bookmarked
+      updatedBookmarks.push(newsItem);
     }
 
     setBookmarkedPosts(updatedBookmarks);
     await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
-  // Share post
   const sharePost = async (title, link) => {
     try {
       await Share.share({ message: link, url: link, title });
@@ -78,7 +70,6 @@ const BusinessSection = ({ navigation }) => {
     }
   };
 
-  // Render News Item (Horizontal Card)
   const renderNewsItem = ({ item }) => {
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
     const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
@@ -106,41 +97,41 @@ const BusinessSection = ({ navigation }) => {
           <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={3}>
             {decode(item.title.rendered)}
           </Text>
-          <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+          <View style={styles.bottomRow}>
+            <View style={styles.dateContainer}>
+              <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" />
+              <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+            </View>
+            <View style={styles.iconRow}>
+              <TouchableOpacity onPress={() => toggleBookmark(item)}>
+                <Bookmark size={20} color={isBookmarked ? "#bf272a" : "gray"} fill={isBookmarked ? "#bf272a" : "none"} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => shareNews(decode(item.title.rendered), item.link)}>
+                <Share2 size={20} color="#bf272a" style={{ marginLeft: 12 }} />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-        <View style={styles.iconRow}>
-          <TouchableOpacity onPress={() => toggleBookmark(item)}>
-            <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => sharePost(decode(item.title.rendered), item.link)} style={styles.iconButton}>
-            <MaterialCommunityIcons name="share-variant-outline" size={22} color="#bf272a" />
-          </TouchableOpacity>
-        </View>
+     
       </TouchableOpacity>
     );
   };
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
-  }
 
   return (
     <View style={styles.sectionContainer}>
       <View style={styles.categoryContainer}>
         <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
-          {/* Icon + Text Container */}
           <View style={{ flexDirection: language === 'ur' ? 'row-reverse' : 'row', alignItems: 'center' }}>
             <MaterialIcons 
               name='business' 
               size={34} 
               color='#BF272a' 
-              style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }} // ✅ Add space on the right in Urdu mode
+              style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }}
             />
             <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
               {language === 'ur' ? "کاروبار" : "BUSINESS"}
             </Text>
           </View>
-          {/* See All Button */}
           <TouchableOpacity 
             onPress={() => navigation.navigate('BottomTabs', {
               screen: 'HOME',
@@ -150,25 +141,29 @@ const BusinessSection = ({ navigation }) => {
             })} 
             style={language === 'ur' ? { marginLeft: 10 } : null}
           >
-            <Text style={styles.seeAll} >{language === 'ur' ? " مزید دیکھیں" : "See All"}</Text>
+            <Text style={styles.seeAll}>{language === 'ur' ? " مزید دیکھیں" : "See All"}</Text>
           </TouchableOpacity>
         </View>
         
-        <FlatList
-          data={businessNews.slice(0, 5)}
-          keyExtractor={item => item.id.toString()}
-          renderItem={renderNewsItem}
-          horizontal // ✅ Set FlatList to horizontal
-          inverted={language === 'ur'} // ✅ Reverse scroll direction for Urdu
-          showsHorizontalScrollIndicator={false} // ✅ Hide scroll bar
-          contentContainerStyle={{
-            paddingHorizontal: language === 'ur' ? 0 : 10, // ✅ No left padding in Urdu mode
-          }}
-        />
+        {businessNews.length > 0 ? (
+          <FlatList
+            data={businessNews.slice(0, 5)}
+            keyExtractor={item => item.id.toString()}
+            renderItem={renderNewsItem}
+            horizontal
+            inverted={language === 'ur'}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: language === 'ur' ? 0 : 10,
+            }}
+          />
+        ) : null}
       </View>
     </View>
   );
 };
+
+// ... keep your existing styles ...
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -243,12 +238,22 @@ const styles = StyleSheet.create({
   },
   iconRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginTop: 10,
     paddingHorizontal: 10
   },
   iconButton: {
     marginLeft: 10,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
   },
 });
 

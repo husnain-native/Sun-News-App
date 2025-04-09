@@ -28,7 +28,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeCategory, setActiveCategory] = useState(null);
+  const { activeCategory, setActiveCategory } = useLanguage();
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -68,6 +68,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
   };
 
   const handleHomePress = () => {
+    setActiveCategory(null);
     navigation.navigate('BottomTabs', {
       screen: 'HOME',
       params: {
@@ -77,7 +78,12 @@ const CustomDrawerContent = ({ navigation, language }) => {
   };
 
   return (
-    <DrawerContentScrollView contentContainerStyle={styles.drawerContainer}>
+    <DrawerContentScrollView 
+      contentContainerStyle={styles.drawerContainer}
+      showsVerticalScrollIndicator={true}
+      bounces={true}
+      overScrollMode="always"
+    >
       <View style={styles.drawerHeader}>
         <Image source={require('../assets/sun-logo.png')} style={styles.drawerLogo} />
         <Text style={styles.drawerTitle}>SUN NEWS</Text>
@@ -86,9 +92,13 @@ const CustomDrawerContent = ({ navigation, language }) => {
       {loading && <ActivityIndicator size="large" color="white" style={{ marginVertical: 20 }} />}
       {error && (
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Failed to load categories</Text>
+          <Text style={styles.errorText}>
+            {language === 'en' ? 'Failed to load categories' : 'کیٹیگریاں لوڈ کرنے میں ناکامی'}
+          </Text>
           <TouchableOpacity onPress={fetchCategories} style={styles.retryButton}>
-            <Text style={styles.retryText}>Retry</Text>
+            <Text style={styles.retryText}>
+              {language === 'en' ? 'Retry' : 'دوبارہ کوشش کریں'}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -99,6 +109,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
           label={language === 'en' ? 'Home' : 'ہوم'}
           onPress={handleHomePress}
           labelStyle={[styles.drawerLabel, { textAlign: language === 'ur' ? 'right' : 'left' }]}
+          style={!activeCategory && styles.activeCategoryBackground}
         />
 
         {/* Categories */}
@@ -122,12 +133,24 @@ const CustomDrawerContent = ({ navigation, language }) => {
 
 const DrawerNavigator = () => {
   const { language, toggleLanguage } = useLanguage();
+  const navigation = useNavigation();
+
+  const handleLanguageToggle = () => {
+    toggleLanguage();
+    // Navigate to Home screen after language change
+    navigation.navigate('BottomTabs', {
+      screen: 'HOME',
+      params: {
+        screen: 'Home'
+      }
+    });
+  };
 
   return (
     <Drawer.Navigator
       drawerContent={(props) => <CustomDrawerContent {...props} language={language} />}
       screenOptions={{
-        headerTitle: () => <CustomHeaderTitle toggleLanguage={toggleLanguage} language={language} />,
+        headerTitle: () => <CustomHeaderTitle toggleLanguage={handleLanguageToggle} language={language} />,
         headerStyle: { backgroundColor: '#BF272a' },
         headerTitleAlign: 'center',
         headerTintColor: 'white',
@@ -144,7 +167,10 @@ const DrawerNavigator = () => {
 };
 
 const styles = StyleSheet.create({
-  drawerContainer: { flex: 1 },
+  drawerContainer: { 
+    flexGrow: 1,
+    paddingBottom: 20,
+  },
   drawerHeader: {
     paddingVertical: 30,
     alignItems: 'center',
@@ -153,17 +179,40 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
     marginBottom: 10,
   },
-  logo: { width: 35, height: 45, resizeMode: 'contain', borderWidth: 1, borderColor: '#fff' },
-  drawerLogo: { width: 86, height: 86, resizeMode: 'contain' },
-  drawerTitle: { fontSize: 40, fontWeight: 'bold', color: 'white', marginTop: 8 },
+  logo: { 
+    width: 35, 
+    height: 45, 
+    resizeMode: 'contain', 
+    borderWidth: 1, 
+    borderColor: '#fff' 
+  },
+  drawerLogo: { 
+    width: 86, 
+    height: 86, 
+    resizeMode: 'contain' 
+  },
+  drawerTitle: { 
+    fontSize: 40, 
+    fontWeight: 'bold', 
+    color: 'white', 
+    marginTop: 8 
+  },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
   },
-  titleLogo: { flexDirection: 'row', marginLeft: 60 },
-  headerTitle: { fontSize: 27, fontWeight: 'bold', color: 'white', marginLeft: 5 },
+  titleLogo: { 
+    flexDirection: 'row', 
+    marginLeft: 60 
+  },
+  headerTitle: { 
+    fontSize: 27, 
+    fontWeight: 'bold', 
+    color: 'white', 
+    marginLeft: 5 
+  },
   languageButton: {
     padding: 5,
     backgroundColor: '#a82729',
@@ -176,18 +225,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  languageText: { color: '#fff', fontWeight: 'bold', fontSize: 20 },
-  drawerItemsContainer: { flex: 1, paddingHorizontal: 10 },
-  drawerLabel: { fontSize: 16, fontWeight: 'bold', color: 'white' },
-  activeCategoryLabel: { color: 'white' },
+  languageText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 20 
+  },
+  drawerItemsContainer: { 
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingBottom: 20,
+  },
+  drawerLabel: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    color: 'white' 
+  },
+  activeCategoryLabel: { 
+    color: 'white' 
+  },
   activeCategoryBackground: {
     backgroundColor: '#BF272a',
     borderRadius: 5,
   },
-  errorContainer: { alignItems: 'center', marginVertical: 10 },
-  errorText: { color: 'red', textAlign: 'center' },
-  retryButton: { backgroundColor: 'white', padding: 6, borderRadius: 5 },
-  retryText: { color: '#BF272a', fontWeight: 'bold' },
+  errorContainer: { 
+    alignItems: 'center', 
+    marginVertical: 10 
+  },
+  errorText: { 
+    color: 'red', 
+    textAlign: 'center' 
+  },
+  retryButton: { 
+    backgroundColor: 'white', 
+    padding: 6, 
+    borderRadius: 5,
+    marginTop: 5 
+  },
+  retryText: { 
+    color: '#BF272a', 
+    fontWeight: 'bold' 
+  },
 });
 
 export default DrawerNavigator;

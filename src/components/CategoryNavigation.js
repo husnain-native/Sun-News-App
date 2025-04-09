@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator, Linking, I18nManager } from 'react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
-import { useLanguage } from '../context/LanguageContext'; // ✅ Import Language Context
+import { useLanguage } from '../context/LanguageContext';
 import LiveBadge from './LiveBadge';
 
 // API URLs for categories
@@ -9,12 +9,18 @@ const ENGLISH_API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?p
 const URDU_API_URL = 'https://sunnewshd.tv/wp-json/wp/v2/categories?per_page=100';
 
 const CategoryNavigation = () => {
-  const { language } = useLanguage(); // ✅ Get language from context
+  const { language } = useLanguage();
   const navigation = useNavigation();
-  const scrollViewRef = useRef(null); // ✅ Ref for ScrollView
+  const scrollViewRef = useRef(null);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  // Force RTL layout for Urdu
+  React.useEffect(() => {
+    I18nManager.forceRTL(language === 'ur');
+    return () => I18nManager.forceRTL(false);
+  }, [language]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -25,11 +31,19 @@ const CategoryNavigation = () => {
       try {
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error('Failed to fetch categories');
-        const data = await response.json();
+        let data = await response.json();
 
-        // Add "Home" manually at the beginning
-        const homeCategory = language === 'en' ? { id: 'home', name: 'Home' } : { id: 'home', name: 'ہوم' };
-        setCategories([homeCategory, ...data]);
+        // Add "Home" manually at the end for Urdu
+        const homeCategory = language === 'en' 
+          ? { id: 'home', name: 'Home' } 
+          : { id: 'home', name: 'ہوم' };
+        
+        if (language === 'ur') {
+          data = data.reverse();
+          setCategories([...data, homeCategory]);
+        } else {
+          setCategories([homeCategory, ...data]);
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
         setError(true);
@@ -39,30 +53,53 @@ const CategoryNavigation = () => {
     };
 
     fetchCategories();
-  }, [language]); // ✅ Re-fetch when language changes
+  }, [language]);
 
-  // Get current active category
-  const activeCategory = useNavigationState(state => {
-    const route = state.routes[state.index];
-    return route.params?.categoryName || (language === 'en' ? 'Home' : 'ہوم');
-  });
+  const { activeCategory, setActiveCategory } = useLanguage();
+  const navigationState = useNavigationState(state => state);
+  
+  const getCurrentCategory = () => {
+    let route = navigationState.routes[navigationState.index];
+    while (route.state?.index !== undefined) {
+      route = route.state.routes[route.state.index];
+    }
+    
+    const categoryName = route.params?.params?.categoryName || 
+                         route.params?.categoryName || 
+                         route.state?.routes?.[route.state?.index]?.params?.categoryName;
+    if (categoryName) return categoryName;
+    
+    return language === 'en' ? 'Home' : 'ہوم';
+  };
 
-  // Scroll to active category
+  const currentActiveCategory = getCurrentCategory();
+
+  useEffect(() => {
+    if (currentActiveCategory) {
+      const category = categories.find(cat => 
+        cat.name === currentActiveCategory || 
+        (cat.id === 'home' && (currentActiveCategory === 'Home' || currentActiveCategory === 'ہوم'))
+      );
+      setActiveCategory(category?.id || null);
+    }
+  }, [currentActiveCategory, categories]);
+
   useEffect(() => {
     if (categories.length > 0 && scrollViewRef.current) {
-      const activeIndex = categories.findIndex(cat => cat.name === activeCategory);
-
+      const activeIndex = categories.findIndex(cat => 
+        cat.name === currentActiveCategory || (cat.id === 'home' && currentActiveCategory === 'ہوم')
+      );
       if (activeIndex !== -1) {
-        // ✅ Scroll to the active category
         scrollViewRef.current.scrollTo({
-          x: activeIndex * 120, // Adjust scroll position based on category width
+          x: activeIndex * 120,
           animated: true,
         });
       }
     }
-  }, [categories, activeCategory]);
+  }, [categories, currentActiveCategory]);
 
   const handleCategoryPress = (category) => {
+    setActiveCategory(category.id === 'home' ? null : category.id);
     if (category.id === 'home') {
       navigation.navigate('BottomTabs', {
         screen: 'HOME',
@@ -85,7 +122,7 @@ const CategoryNavigation = () => {
   };
 
   const handleLivePress = async () => {
-    const youtubeUrl = 'https://www.youtube.com/@sunnewshd'; // Replace with your actual YouTube channel URL
+    const youtubeUrl = 'https://youtube.com/@sunnewsofficial?si=JVTo2fZM8OOkzW9x';
     try {
       await Linking.openURL(youtubeUrl);
     } catch (error) {
@@ -95,16 +132,13 @@ const CategoryNavigation = () => {
 
   return (
     <View>
-      {/* Category List */}
       <View style={[styles.container, language === 'ur' && styles.rtlContainer]}>
         <ScrollView
-          ref={scrollViewRef} // ✅ Attach ref to ScrollView
+          ref={scrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={[
-            styles.categoryContainer,
-            language === 'ur' && styles.rtlCategoryContainer, // ✅ RTL for Urdu
-          ]}
+          contentContainerStyle={[styles.categoryContainer, language === 'ur' && styles.rtlCategoryContainer]}
+          inverted={language === 'ur'}
         >
           {loading ? (
             <ActivityIndicator size="small" color="#BF272a" style={{ marginHorizontal: 10 }} />
@@ -118,16 +152,16 @@ const CategoryNavigation = () => {
                 key={category.id}
                 style={[
                   styles.categoryButton,
-                  activeCategory === category.name && styles.activeButton,
-                  language === 'ur' && styles.rtlCategoryButton, // ✅ RTL for Urdu
+                  (activeCategory === category.id || (category.id === 'home' && !activeCategory)) && styles.activeButton,
+                  language === 'ur' && styles.rtlCategoryButton,
                 ]}
                 onPress={() => handleCategoryPress(category)}
               >
                 <Text
                   style={[
                     styles.buttonText,
-                    activeCategory === category.name && styles.activeButtonText,
-                    language === 'ur' && styles.rtlText, // ✅ RTL for Urdu
+                    (activeCategory === category.id || (category.id === 'home' && !activeCategory)) && styles.activeButtonText,
+                    language === 'ur' && styles.rtlText,
                   ]}
                 >
                   {category.name}
@@ -137,7 +171,6 @@ const CategoryNavigation = () => {
           )}
         </ScrollView>
 
-        {/* Live Badge */}
         <TouchableOpacity onPress={handleLivePress}>
           <LiveBadge />
         </TouchableOpacity>
@@ -157,7 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
   },
   rtlContainer: {
-    flexDirection: 'row', // ✅ RTL for Urdu
+    flexDirection: 'row-reverse',
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -165,7 +198,8 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   rtlCategoryContainer: {
-    flexDirection: 'row', // ✅ RTL scrolling for Urdu
+    direction: 'row-reverse',
+    alignItems: 'flex-end',
   },
   categoryButton: {
     backgroundColor: '#fff',
@@ -175,7 +209,7 @@ const styles = StyleSheet.create({
   },
   rtlCategoryButton: {
     marginRight: 0,
-    marginLeft: 10, // ✅ Adjust spacing for RTL
+    marginLeft: 10,
   },
   buttonText: {
     fontSize: 16,
@@ -183,7 +217,8 @@ const styles = StyleSheet.create({
     color: '#BF272a',
   },
   rtlText: {
-    textAlign: 'right', // ✅ Align text to right for Urdu
+    textAlign: 'right',
+    writingDirection: 'rtl',
   },
   activeButton: {
     borderBottomWidth: 2,

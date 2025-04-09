@@ -112,6 +112,9 @@ const CategoryScreen = () => {
     const date = item.date ? new Date(item.date).toDateString() : 'Date not available';
     const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
 
+    // Check for both video URL types
+    const videoUrl = item.tie_video_url || item.tic_video_url;
+
     return (
       <TouchableOpacity
         style={styles.card}
@@ -122,8 +125,11 @@ const CategoryScreen = () => {
             description: item.excerpt.rendered,
             image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
             source: { name: 'Sun News' },
-            publishedAt: item.date
-          }
+            publishedAt: item.date,
+            videoUrl: videoUrl // Pass the video URL if present
+          },
+          categoryId: categoryId,
+          categoryName: categoryName
         })}
       >
         <Image source={{ uri: imageUrl }} style={styles.cardImage} />

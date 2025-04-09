@@ -47,29 +47,37 @@ const BookmarkScreen = ({ navigation }) => {
     }
   };
 
-  const renderNewsItem = ({ item }) => {
-    const title = item?.title?.rendered || 'No Title';
-    const imageUrl = item?._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-    const date = new Date(item?.date).toDateString();
+  const renderBookmarkItem = ({ item }) => {
+    if (!item || !item.id) return null;
+
+    const title = item.title?.rendered || 'No Title';
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150';
+    const date = item.date ? new Date(item.date).toDateString() : 'Date not available';
+    const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
+
+    // Check for both video URL types
+    const videoUrl = item.tie_video_url || item.tic_video_url;
 
     return (
       <TouchableOpacity
-      style={styles.card} 
-      onPress={() => navigation.navigate('BottomTabs', {
-        screen: 'HOME',
-        params: {
-          screen: 'NewsDetails',
+        style={styles.card}
+        onPress={() => navigation.navigate('BottomTabs', {
+          screen: 'HOME',
           params: {
-            news: { 
-              title: item.title.rendered, 
-              image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
-              content: item.content?.rendered ?? '<p>No content available.</p>',
-              source: { name: 'Sun News' }, 
-              publishedAt: item.date
-            } 
+            screen: 'NewsDetails',
+            params: {
+              news: {
+                title: item.title.rendered,
+                content: item.content.rendered,
+                description: item.excerpt.rendered,
+                image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
+                source: { name: 'Sun News' },
+                publishedAt: item.date,
+                videoUrl: videoUrl // Pass the video URL if present
+              }
+            }
           }
-        }
-      })}
+        })}
       >
         <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
@@ -78,7 +86,7 @@ const BookmarkScreen = ({ navigation }) => {
         <View style={styles.iconRow}>
           <View style={styles.dateContainer}>
                         <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{marginEnd: 5}} />
-                        <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+                        <Text style={styles.cardSubtitle}>{date}</Text>
                       </View>
           <View style={styles.iconGroup}>
             <TouchableOpacity onPress={() => removeBookmark(item.id)} style={styles.iconButton}>
@@ -117,8 +125,8 @@ const BookmarkScreen = ({ navigation }) => {
         ) : (
           <FlatList
             data={bookmarkedPosts}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderNewsItem}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            renderItem={renderBookmarkItem}
             showsVerticalScrollIndicator={false}
           />
         )}
