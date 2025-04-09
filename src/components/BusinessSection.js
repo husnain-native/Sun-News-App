@@ -177,7 +177,8 @@ const styles = StyleSheet.create({
   headerRow: {
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 15,
+    paddingHorizontal: 15
   },
   sectionTitle: {
     fontSize: 22,

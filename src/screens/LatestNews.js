@@ -90,21 +90,23 @@ const LatestNews = () => {
     return (
       <TouchableOpacity
       style={styles.card} 
-      onPress={() => navigation.navigate('BottomTabs', {
-        screen: 'HOME',
-        params: {
-          screen: 'NewsDetails',
-          params: {
-            news: { 
-              title: item.title.rendered, 
-              image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
-              content: item.content?.rendered ?? '<p>No content available.</p>',
-              source: { name: 'Sun News' }, 
-              publishedAt: item.date
-            } 
-          }
-        }
-      })}
+     // In LatestNews.js renderNewsItem function:
+onPress={() => navigation.navigate('BottomTabs', {
+  screen: 'HOME',
+  params: {
+    screen: 'NewsDetails',
+    params: {
+      news: { 
+        title: item.title.rendered, 
+        image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
+        content: item.content?.rendered ?? '<p>No content available.</p>',
+        source: { name: 'Sun News' }, 
+        publishedAt: item.date
+      },
+      fromScreen: 'BREAKING' // Add this line
+    }
+  }
+})}
       >
         <Image 
           source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} 

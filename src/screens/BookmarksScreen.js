@@ -74,7 +74,8 @@ const BookmarkScreen = ({ navigation }) => {
                 source: { name: 'Sun News' },
                 publishedAt: item.date,
                 videoUrl: videoUrl // Pass the video URL if present
-              }
+              },
+              fromScreen: 'SAVED' // Add this line
             }
           }
         })}

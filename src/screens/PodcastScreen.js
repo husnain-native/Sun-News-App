@@ -98,7 +98,7 @@ const PodcastScreen = () => {
           params: {
             screen: 'NewsDetails',
             params: {
-              news: {
+              news: { 
                 title: item.title.rendered,
                 content: item.content.rendered,
                 description: item.excerpt.rendered,
@@ -106,7 +106,8 @@ const PodcastScreen = () => {
                 source: { name: 'Sun News' },
                 publishedAt: item.date,
                 videoUrl: videoUrl // Pass the video URL if present
-              }
+              },
+              fromScreen: 'PODCAST' // Add this line
             }
           }
         })}

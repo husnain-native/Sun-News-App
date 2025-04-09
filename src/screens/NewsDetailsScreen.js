@@ -90,9 +90,25 @@ const NewsDetailsScreen = ({ route, navigation }) => {
 
       {/* **Back Arrow at the Top** */}
       <TouchableOpacity
-        style={[styles.backButton]} // Apply RTL styles for Urdu
+        style={[styles.backButton, language === 'ur' && styles.rtlBackButton]}
         onPress={() => {
-          if (route.params?.categoryName) {
+          if (route.params?.fromScreen === 'BREAKING') {
+            navigation.navigate('BottomTabs', {
+              screen: 'BREAKING'
+            });}
+          else if (route.params?.fromScreen === 'PODCAST') {
+            navigation.navigate('BottomTabs', {
+              screen: 'PODCAST'
+            });
+         
+          } 
+          else if (route.params?.fromScreen === 'SAVED') {
+            navigation.navigate('BottomTabs', {
+              screen: 'SAVED'
+            });
+         
+          } 
+          else if (route.params?.categoryName) {
             navigation.navigate('BottomTabs', {
               screen: 'HOME',
               params: {
@@ -116,7 +132,7 @@ const NewsDetailsScreen = ({ route, navigation }) => {
         }}
       >
         <Ionicons
-          name="return-up-back" // Back arrow icon
+          name="return-up-back"
           size={30}
           color="#BF272A"
         />
