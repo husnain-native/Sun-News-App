@@ -61,14 +61,16 @@ const BusinessSection = ({ navigation }) => {
     await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
-  const sharePost = async (title, link) => {
-    try {
-      await Share.share({ message: link, url: link, title });
-    } catch (error) {
-      console.error('Error sharing news:', error.message);
-      Alert.alert("Sharing Failed", "There was an error sharing the news.");
-    }
-  };
+   // Share News
+    const shareNews = async (title, url) => {
+      try {
+        await Share.share({
+          message: `${title}\n\nRead more: ${url}`,
+        });
+      } catch (error) {
+        console.error('Error sharing news:', error);
+      }
+    };
 
   const renderNewsItem = ({ item }) => {
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');

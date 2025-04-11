@@ -132,7 +132,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
 };
 
 const DrawerNavigator = () => {
-  const { language, toggleLanguage } = useLanguage();
+  const { language, direction, toggleLanguage } = useLanguage();
   const navigation = useNavigation();
 
   const handleLanguageToggle = () => {
@@ -154,11 +154,19 @@ const DrawerNavigator = () => {
         headerStyle: { backgroundColor: '#BF272a' },
         headerTitleAlign: 'center',
         headerTintColor: 'white',
-        drawerStyle: { backgroundColor: '#1E1E2D' },
+        drawerStyle: {
+          backgroundColor: '#1E1E2D',
+          width: '80%',
+        },
+        drawerPosition: direction === 'rtl' ? 'right' : 'left',
         drawerActiveBackgroundColor: '#BF272a',
         drawerActiveTintColor: 'white',
         drawerInactiveTintColor: '#CCCCCC',
-        drawerLabelStyle: { fontSize: 16, fontWeight: 'bold' },
+        drawerLabelStyle: { 
+          fontSize: 16, 
+          fontWeight: 'bold',
+          textAlign: direction === 'rtl' ? 'right' : 'left'
+        },
       }}
     >
       <Drawer.Screen name="BottomTabs" component={BottomTabNavigator} />
@@ -167,9 +175,10 @@ const DrawerNavigator = () => {
 };
 
 const styles = StyleSheet.create({
-  drawerContainer: { 
+  drawerContainer: {
     flexGrow: 1,
     paddingBottom: 20,
+    width: '100%',
   },
   drawerHeader: {
     paddingVertical: 30,

@@ -30,7 +30,7 @@ const LatestNewsSection = () => {
       } catch (error) {
         setError(error.message);
       } finally {
-        // setLoading(false);
+        setLoading(true);
       }
     };
 

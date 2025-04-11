@@ -13,12 +13,14 @@
       "backgroundColor": "#9c031e"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "supportsRtl": false
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/sun-logo.png",
-        "backgroundColor": "#bf272a"
+        "backgroundColor": "#bf272a",
+        "supportsRtl": false 
       },
       "package": "com.husnainarif1.SunNews"
     },
