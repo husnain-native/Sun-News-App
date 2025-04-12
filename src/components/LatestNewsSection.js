@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, FlatList, TouchableOpacity, Image, Text, 
   StyleSheet, ActivityIndicator, Alert 
@@ -9,6 +9,7 @@ import { useLanguage } from '../context/LanguageContext'; // Import Language Con
 const LatestNewsSection = () => {
   const navigation = useNavigation();
   const { language } = useLanguage(); // Get the current language from context
+  const flatListRef = useRef(null);
   const [latestNews, setLatestNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,6 +37,20 @@ const LatestNewsSection = () => {
 
     fetchLatestNews();
   }, [language]); // Re-fetch when language changes
+
+  useEffect(() => {
+    // Reset scroll position when latestNews changes (after language change)
+    if (latestNews.length > 0 && flatListRef.current) {
+      const timer = setTimeout(() => {
+        flatListRef.current.scrollToIndex({
+          index: 0,
+          animated: false,
+          viewPosition: 0
+        });
+      }, 100); // Small delay to ensure FlatList is ready
+      return () => clearTimeout(timer);
+    }
+  }, [latestNews]);
 
   const renderNewsItem = ({ item }) => {
     if (!item || !item.id) return null;
@@ -89,6 +104,7 @@ const LatestNewsSection = () => {
   return (
     <View style={styles.latestNewsContainer}>
       <FlatList
+        ref={flatListRef}
         data={latestNews}
         horizontal
         keyExtractor={(item) => item.id.toString()}
@@ -96,6 +112,14 @@ const LatestNewsSection = () => {
         inverted={language === 'ur'}
         showsHorizontalScrollIndicator={false}
         nestedScrollEnabled={true}
+        onScrollToIndexFailed={(error) => {
+          console.log('Scroll to index failed:', error);
+          flatListRef.current?.scrollToOffset({
+            offset: 0,
+            animated: false,
+          });
+        }}
+        initialScrollIndex={0}
       />
     </View>
   );

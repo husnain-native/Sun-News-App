@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { View, Text, Image, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { I18nManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../context/LanguageContext';
 import BottomTabNavigator from './BottomTabNavigator';
@@ -10,7 +11,6 @@ const Drawer = createDrawerNavigator();
 const ENGLISH_API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
 const URDU_API_URL = 'https://sunnewshd.tv/wp-json/wp/v2/categories?per_page=100';
 
-// Custom Header with Logo and Language Toggle
 const CustomHeaderTitle = ({ toggleLanguage, language }) => (
   <View style={styles.headerContainer}>
     <View style={styles.titleLogo}>
@@ -23,7 +23,6 @@ const CustomHeaderTitle = ({ toggleLanguage, language }) => (
   </View>
 );
 
-// Custom Drawer Content
 const CustomDrawerContent = ({ navigation, language }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,23 +103,20 @@ const CustomDrawerContent = ({ navigation, language }) => {
       )}
 
       <View style={styles.drawerItemsContainer}>
-        {/* Home Menu Item */}
         <DrawerItem
           label={language === 'en' ? 'Home' : 'ہوم'}
           onPress={handleHomePress}
-          labelStyle={[styles.drawerLabel, { textAlign: language === 'ur' ? 'right' : 'left' }]}
+          labelStyle={styles.drawerLabel(language)}
           style={!activeCategory && styles.activeCategoryBackground}
         />
 
-        {/* Categories */}
         {categories.map((category) => (
           <DrawerItem
             key={category.id}
             label={category.name}
             onPress={() => handleCategoryPress(category)}
             labelStyle={[
-              styles.drawerLabel,
-              { textAlign: language === 'ur' ? 'right' : 'left' },
+              styles.drawerLabel(language),
               activeCategory === category.id && styles.activeCategoryLabel,
             ]}
             style={[activeCategory === category.id && styles.activeCategoryBackground]}
@@ -132,12 +128,15 @@ const CustomDrawerContent = ({ navigation, language }) => {
 };
 
 const DrawerNavigator = () => {
-  const { language, direction, toggleLanguage } = useLanguage();
+  const { language, toggleLanguage } = useLanguage();
   const navigation = useNavigation();
+  
+  // Force LTR layout for drawer
+  I18nManager.forceRTL(false);
+  I18nManager.allowRTL(false);
 
   const handleLanguageToggle = () => {
     toggleLanguage();
-    // Navigate to Home screen after language change
     navigation.navigate('BottomTabs', {
       screen: 'HOME',
       params: {
@@ -156,16 +155,21 @@ const DrawerNavigator = () => {
         headerTintColor: 'white',
         drawerStyle: {
           backgroundColor: '#1E1E2D',
-          width: '80%',
+          width: '85%',
         },
-        drawerPosition: direction === 'rtl' ? 'right' : 'left',
+        drawerPosition: 'left', // Always show drawer on left side
+        drawerType: 'front',
+        overlayColor: 'transparent',
+        sceneContainerStyle: {
+          backgroundColor: 'transparent',
+        },
         drawerActiveBackgroundColor: '#BF272a',
         drawerActiveTintColor: 'white',
         drawerInactiveTintColor: '#CCCCCC',
         drawerLabelStyle: { 
           fontSize: 16, 
           fontWeight: 'bold',
-          textAlign: direction === 'rtl' ? 'right' : 'left'
+          textAlign: language === 'ur' ? 'right' : 'left', // Change alignment based on language
         },
       }}
     >
@@ -178,10 +182,9 @@ const styles = StyleSheet.create({
   drawerContainer: {
     flexGrow: 1,
     paddingBottom: 20,
-    width: '100%',
   },
   drawerHeader: {
-    paddingVertical: 30,
+    paddingVertical: 20,
     alignItems: 'center',
     backgroundColor: '#1E1E2D',
     borderBottomLeftRadius: 30,
@@ -244,11 +247,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingBottom: 20,
   },
-  drawerLabel: { 
-    fontSize: 16, 
+  drawerLabel: (language) => ({ 
+    fontSize: 19, 
     fontWeight: 'bold', 
-    color: 'white' 
-  },
+    color: 'white',
+    textAlign: language === 'ur' ? 'right' : 'left',
+    marginLeft: 0,
+    paddingLeft: 0,
+  }),
   activeCategoryLabel: { 
     color: 'white' 
   },

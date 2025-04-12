@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
   StyleSheet, Share, Alert 
@@ -11,6 +11,7 @@ import { useLanguage } from '../context/LanguageContext';
 
 const BusinessSection = ({ navigation }) => {
   const { language } = useLanguage();
+  const flatListRef = useRef(null);
   const [businessNews, setBusinessNews] = useState([]);
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
@@ -18,6 +19,20 @@ const BusinessSection = ({ navigation }) => {
     fetchNews();
     loadBookmarkedPosts();
   }, [language]);
+
+  useEffect(() => {
+    // Reset scroll position when businessNews changes (after language change)
+    if (businessNews.length > 0 && flatListRef.current) {
+      const timer = setTimeout(() => {
+        flatListRef.current.scrollToIndex({
+          index: 0,
+          animated: false,
+          viewPosition: 0
+        });
+      }, 100); // Small delay to ensure FlatList is ready
+      return () => clearTimeout(timer);
+    }
+  }, [businessNews]);
 
   const fetchNews = async () => {
     try {
@@ -149,7 +164,16 @@ const BusinessSection = ({ navigation }) => {
         
         {businessNews.length > 0 ? (
           <FlatList
+            ref={flatListRef}
             data={businessNews.slice(0, 5)}
+            onScrollToIndexFailed={(error) => {
+              console.log('Scroll to index failed:', error);
+              flatListRef.current?.scrollToOffset({
+                offset: 0,
+                animated: false,
+              });
+            }}
+            initialScrollIndex={0}
             keyExtractor={item => item.id.toString()}
             renderItem={renderNewsItem}
             horizontal
