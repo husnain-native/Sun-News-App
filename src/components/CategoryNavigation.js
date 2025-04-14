@@ -122,7 +122,7 @@ const CategoryNavigation = () => {
   };
 
   const handleLivePress = async () => {
-    const youtubeUrl = 'https://youtube.com/@sunnewsofficial?si=JVTo2fZM8OOkzW9x';
+    const youtubeUrl = 'https://www.youtube.com/@SunNewsOfficial/streams';
     try {
       await Linking.openURL(youtubeUrl);
     } catch (error) {

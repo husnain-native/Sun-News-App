@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, StyleSheet, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, useWindowDimensions, TouchableOpacity, BackHandler } from 'react-native';
 import ThreeDotLoader from '../components/ThreeDotLoader';
 import { Ionicons } from '@expo/vector-icons'; // Import Ionicons for the back arrow
 import RenderHtml, { defaultHTMLElementModels } from 'react-native-render-html';
@@ -43,7 +43,54 @@ const NewsDetailsScreen = ({ route, navigation }) => {
       setIsLoading(false);
     }, 1500); // Simulate loading for 1.5 seconds
 
-    return () => clearTimeout(timer);
+    // Handle Android back button
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (route.params?.fromScreen === 'BREAKING') {
+          navigation.navigate('BottomTabs', {
+            screen: 'BREAKING'
+          });
+          return true;
+        } else if (route.params?.fromScreen === 'PODCAST') {
+          navigation.navigate('BottomTabs', {
+            screen: 'PODCAST'
+          });
+          return true;
+        } else if (route.params?.fromScreen === 'SAVED') {
+          navigation.navigate('BottomTabs', {
+            screen: 'SAVED'
+          });
+          return true;
+        } else if (route.params?.categoryName) {
+          navigation.navigate('BottomTabs', {
+            screen: 'HOME',
+            params: {
+              screen: 'Category',
+              params: {
+                categoryId: route.params.categoryId,
+                categoryName: route.params.categoryName
+              }
+            }
+          });
+        } else if (navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.navigate('BottomTabs', {
+            screen: 'HOME',
+            params: {
+              screen: 'Home'
+            }
+          });
+        }
+        return true; // Prevent default back behavior
+      }
+    );
+
+    return () => {
+      clearTimeout(timer);
+      backHandler.remove(); // Clean up back handler
+    };
   }, []);
   const news = route?.params?.news;
   const { language } = useLanguage(); // Get the current language from context

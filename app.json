@@ -20,7 +20,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/sun-logo.png",
         "backgroundColor": "#bf272a",
-        "supportsRtl": false 
+        "supportsRtl": false ,
+        "resizeMode": "contain" 
       },
       "package": "com.husnainarif1.SunNews"
     },
