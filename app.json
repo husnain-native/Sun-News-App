@@ -23,7 +23,7 @@
         "supportsRtl": false ,
         "resizeMode": "contain" 
       },
-      "package": "com.husnainarif1.SunNews"
+      "package": "com.sunnewshd.app"
     },
     "web": {
       "favicon": "./src/assets/sun-logo.png"
