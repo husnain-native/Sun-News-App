@@ -56,8 +56,11 @@ const LatestNewsSection = () => {
     if (!item || !item.id) return null;
 
     const title = item.title?.rendered || 'No Title';
-    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-    // const date = new Date(item.date).toDateString();
+    let imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+
+    if (typeof imageUrl !== 'string') {
+      imageUrl = require('../assets/notfound.png');
+    }
 
     return (
       <TouchableOpacity
@@ -66,12 +69,12 @@ const LatestNewsSection = () => {
           news: {
             title: item.title.rendered,
             content: item.content.rendered,
-            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
+            image: imageUrl,
             // publishedAt: item.date
           }
         })}
       >
-        <Image source={{ uri: imageUrl }} style={styles.latestNewsImage} />
+        <Image source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} style={styles.latestNewsImage} />
         <View style={[styles.overlay, language === 'ur' && styles.urduOverlay]}>
           <Text 
             style={[

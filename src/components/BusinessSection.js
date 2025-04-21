@@ -88,7 +88,13 @@ const BusinessSection = ({ navigation }) => {
     };
 
   const renderNewsItem = ({ item }) => {
-    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
+    let imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url;
+
+    // Ensure imageUrl is a string, else fallback to local image
+    if (typeof imageUrl !== 'string') {
+      imageUrl = require('../assets/notfound.png');
+    }
+
     const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
 
     return (
