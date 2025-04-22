@@ -18,7 +18,7 @@ const CustomHeaderTitle = ({ toggleLanguage, language }) => (
       <Text style={styles.headerTitle}>SUN NEWS</Text>
     </View>
     <TouchableOpacity onPress={toggleLanguage} style={styles.languageButton}>
-      <Text style={styles.languageText}>{language === 'en' ? 'اردو' : 'English'}</Text>
+      <Text style={styles.languageText}>{language === 'en' ? 'پنجابی ' : 'English'}</Text>
     </TouchableOpacity>
   </View>
 );
@@ -36,7 +36,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
 
     try {
       const response = await fetch(API_URL);
-      if (!response.ok) throw new Error('Failed to fetch categories');
+      if (!response.ok) throw new Error('Network Issue! Failed to fetch categories');
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -92,7 +92,7 @@ const CustomDrawerContent = ({ navigation, language }) => {
       {error && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
-            {language === 'en' ? 'Failed to load categories' : 'کیٹیگریاں لوڈ کرنے میں ناکامی'}
+            {language === 'en' ? 'Networt issue!Failed to load categories' : 'کیٹیگریاں لوڈ کرنے میں ناکامی'}
           </Text>
           <TouchableOpacity onPress={fetchCategories} style={styles.retryButton}>
             <Text style={styles.retryText}>

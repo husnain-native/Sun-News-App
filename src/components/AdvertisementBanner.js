@@ -16,7 +16,7 @@ const AdvertisementBanner = () => {
 const styles = StyleSheet.create({
   container: {
     width: Dimensions.get('window').width,
-    height: 80,
+    height: 60,
     backgroundColor: '#fff',
     marginVertical: 10,
     paddingHorizontal: 10,

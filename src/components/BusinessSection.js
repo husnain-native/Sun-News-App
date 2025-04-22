@@ -142,33 +142,33 @@ const BusinessSection = ({ navigation }) => {
 
   return (
     <View style={styles.sectionContainer}>
-      <View style={styles.categoryContainer}>
-        <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
-          <View style={{ flexDirection: language === 'ur' ? 'row-reverse' : 'row', alignItems: 'center' }}>
-            <MaterialIcons 
-              name='business' 
-              size={34} 
-              color='#BF272a' 
-              style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }}
-            />
-            <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
-              {language === 'ur' ? "کاروبار" : "BUSINESS"}
-            </Text>
+      {businessNews.length > 0 && (
+        <View style={styles.categoryContainer}>
+          <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
+            <View style={{ flexDirection: language === 'ur' ? 'row-reverse' : 'row', alignItems: 'center' }}>
+              <MaterialIcons 
+                name='business' 
+                size={34} 
+                color='#BF272a' 
+                style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }}
+              />
+              <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
+                {language === 'ur' ? "کاروبار" : "BUSINESS"}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('BottomTabs', {
+                screen: 'HOME',
+                params: {
+                  screen: 'Business'
+                }
+              })} 
+              style={language === 'ur' ? { marginLeft: 10 } : null}
+            >
+              <Text style={styles.seeAll}>{language === 'ur' ? " مزید دیکھیں" : "See All"}</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('BottomTabs', {
-              screen: 'HOME',
-              params: {
-                screen: 'Business'
-              }
-            })} 
-            style={language === 'ur' ? { marginLeft: 10 } : null}
-          >
-            <Text style={styles.seeAll}>{language === 'ur' ? " مزید دیکھیں" : "See All"}</Text>
-          </TouchableOpacity>
-        </View>
-        
-        {businessNews.length > 0 ? (
+          
           <FlatList
             ref={flatListRef}
             data={businessNews.slice(0, 5)}
@@ -189,8 +189,8 @@ const BusinessSection = ({ navigation }) => {
               paddingHorizontal: language === 'ur' ? 0 : 10,
             }}
           />
-        ) : null}
-      </View>
+        </View>
+      )}
     </View>
   );
 };

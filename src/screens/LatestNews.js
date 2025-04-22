@@ -6,13 +6,14 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
 import { MaterialCommunityIcons, Ionicons, FontAwesome } from '@expo/vector-icons';
+import RNRestart from 'react-native-restart';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLanguage } from '../context/LanguageContext'; // Import Language Context
+import { useLanguage } from '../context/LanguageContext';
 
 const LatestNews = () => {
   const navigation = useNavigation();
-  const { language } = useLanguage(); // Get the current language from context
+  const { language } = useLanguage();
   const [podcasts, setPodcasts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,30 +22,32 @@ const LatestNews = () => {
   useEffect(() => {
     fetchPodcasts();
     loadBookmarkedPosts();
-  }, [language]); // Re-fetch when language changes
+  }, [language]);
 
-  // Fetch podcasts based on selected language
   const fetchPodcasts = async () => {
     setLoading(true);
+    setError(null);
     try {
       const API_URL = language === 'en'
-        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=24&_embed' // English API
-        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=33&_embed'; // Urdu API
+        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=24&_embed'
+        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=33&_embed';
 
       const response = await fetch(API_URL);
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        throw new Error(language === 'en' 
+          ? 'Failed to load latest news' 
+          : 'تازہ ترین خبریں لوڈ کرنے میں ناکامی');
       }
       const data = await response.json();
       setPodcasts(data);
     } catch (error) {
-      console.error('Error fetching podcasts:', error);
+      console.error('Error fetching news:', error);
+      setError(<Text style={color='#bf272a'}>Connection Failed!</Text>);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load saved bookmarks
   const loadBookmarkedPosts = async () => {
     try {
       const savedPosts = await AsyncStorage.getItem('bookmarkedPosts');
@@ -56,71 +59,82 @@ const LatestNews = () => {
     }
   };
 
-  // Toggle bookmark
   const toggleBookmark = async (podcast) => {
-    let updatedBookmarks = [...bookmarkedPosts];
-    const index = updatedBookmarks.findIndex(item => item.id === podcast.id);
+    try {
+      const updatedBookmarks = bookmarkedPosts.some(item => item.id === podcast.id)
+        ? bookmarkedPosts.filter(item => item.id !== podcast.id)
+        : [...bookmarkedPosts, podcast];
 
-    if (index !== -1) {
-      updatedBookmarks.splice(index, 1); // Remove if already bookmarked
-    } else {
-      updatedBookmarks.push(podcast); // Add if not bookmarked
+      setBookmarkedPosts(updatedBookmarks);
+      await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
     }
-
-    setBookmarkedPosts(updatedBookmarks);
-    await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
   };
 
   const sharePost = async (title, link) => {
-     try {
-       await Share.share({ message: `${link}` });
-     } catch (error) {
-       console.error('Error sharing post:', error);
-     }
-   };
- 
-   const renderNewsItem = ({ item }) => {
-    const title = item?.title?.rendered || 'No Title';
-    const imageUrl = item?._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
-    const date = new Date(item?.date).toDateString();
-    
-    // Check if the current item is bookmarked
-    const isBookmarked = bookmarkedPosts.some(bookmark => bookmark.id === item.id);
-  
+    try {
+      await Share.share({ message: link });
+    } catch (error) {
+      Alert.alert(
+        language === 'en' ? "Sharing Failed" : "شیئرنگ ناکام",
+        language === 'en' 
+          ? "There was a problem sharing the post." 
+          : "پوسٹ شیئر کرنے میں مسئلہ درپیش آیا۔"
+      );
+    }
+  };
+
+  const handleRestart = async () => {
+    try {
+      await RNRestart.Restart();
+    } catch (restartError) {
+      Alert.alert(
+        language === 'en' ? 'Restart Failed' : 'ری اسٹارٹ ناکام',
+        language === 'en' 
+          ? 'Please manually close and reopen the app' 
+          : 'براہ کرم دستی طور پر ایپ بند کریں اور دوبارہ کھولیں'
+      );
+    }
+  };
+
+  const renderNewsItem = ({ item }) => {
+    const title = item.title?.rendered || (language === 'en' ? 'No Title' : 'کوئی عنوان نہیں');
+    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150';
+    const date = item.date ? new Date(item.date).toDateString() : (language === 'en' ? 'Date not available' : 'تاریخ دستیاب نہیں');
+    const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
+
     return (
       <TouchableOpacity
-      style={styles.card} 
-     // In LatestNews.js renderNewsItem function:
-onPress={() => navigation.navigate('BottomTabs', {
-  screen: 'HOME',
-  params: {
-    screen: 'NewsDetails',
-    params: {
-      news: { 
-        title: item.title.rendered, 
-        image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url, 
-        content: item.content?.rendered ?? '<p>No content available.</p>',
-        source: { name: 'Sun News' }, 
-        publishedAt: item.date
-      },
-      fromScreen: 'BREAKING' // Add this line
-    }
-  }
-})}
+        style={styles.card}
+        onPress={() => navigation.navigate('BottomTabs', {
+          screen: 'HOME',
+          params: {
+            screen: 'NewsDetails',
+            params: {
+              news: { 
+                title: item.title.rendered,
+                content: item.content.rendered,
+                description: item.excerpt.rendered,
+                image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
+                source: { name: 'Sun News' },
+                publishedAt: item.date
+              },
+              fromScreen: 'BREAKING'
+            }
+          }
+        })}
       >
-        <Image 
-          source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl} 
-          style={styles.cardImage} 
-        />
+        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
         <View style={styles.cardTextContainer}>
-          <Text style={[styles.cardTitle, language === 'ur' && styles.urduTitle]} numberOfLines={2}>
-            {item.title.rendered}
+          <Text style={[styles.cardTitle, language === 'ur' && styles.urduText]} numberOfLines={3}>
+            {title}
           </Text>
         </View>
-        <View style={styles.iconRow}>
+        <View style={[styles.iconRow, language === 'ur' && styles.urduIconRow]}>
           <View style={styles.dateContainer}>
-            <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{marginEnd: 5}} />
-            <Text style={styles.cardSubtitle}>{new Date(item.date).toDateString()}</Text>
+            <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{ marginEnd: 5 }} />
+            <Text style={styles.cardSubtitle}>{date}</Text>
           </View>
           <View style={styles.iconGroup}>
             <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.iconButton}>
@@ -133,10 +147,40 @@ onPress={() => navigation.navigate('BottomTabs', {
         </View>
       </TouchableOpacity>
     );
-  }; 
+  };
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#BF272a" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Image
+          source={require('../assets/new.jpg')}
+          style={styles.errorImage}
+          accessibilityLabel="Error"
+        />
+        <Text style={styles.errorText}>
+          {error || (language === 'en' 
+            ? 'Network Failed' 
+            : 'نیٹورک ناکام')}
+        </Text>
+        <TouchableOpacity 
+          style={styles.retryButton} 
+          onPress={handleRestart}
+          activeOpacity={0.8}
+        >
+       <Text style={styles.retryText}>
+                {language === 'ur' ? 'ری فریش ' : 'Refresh'}
+              </Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -164,98 +208,139 @@ onPress={() => navigation.navigate('BottomTabs', {
 };
 
 const styles = StyleSheet.create({
-  categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
-  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
-  headerRow: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    marginBottom: 15, 
-    marginTop: 5 
+  categoryNavContainer: { 
+    width: Dimensions.get('window').width, 
+    backgroundColor: '#fff' 
+  },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8f8f8', 
+    paddingHorizontal: 15, 
+    paddingTop: 10 
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    marginTop: 5
   },
   rtlHeaderRow: {
-    flexDirection: 'row-reverse', // Reverse the direction for Urdu
+    flexDirection: 'row-reverse',
   },
-  titleContainer: { 
-    flexDirection: 'column', 
-    alignItems: 'flex-start' 
+  titleContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start'
   },
   rtlTitleContainer: {
-    alignItems: 'flex-end', // Align text to the right for Urdu
+    alignItems: 'flex-end',
   },
-  sectionTitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    padding: 10, 
-    color: '#333' 
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 10,
+    color: '#333'
   },
-  underline: { 
-    height: 4, 
-    backgroundColor: '#BF272a', 
-    width: '70%', 
-    marginTop: -7, 
-    borderRadius: 100, 
-    marginStart: 8 
+  underline: {
+    height: 4,
+    backgroundColor: '#BF272a',
+    width: '70%',
+    marginTop: -7,
+    borderRadius: 100,
+    marginStart: 8
   },
-  card: { 
-    backgroundColor: '#fff', 
-    borderRadius: 12, 
-    marginBottom: 15, 
-    paddingBottom: 10, 
-    elevation: 3 
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 15,
+    paddingBottom: 10,
+    elevation: 3
   },
-  cardImage: { 
-    width: '100%', 
-    height: 180, 
-    borderTopLeftRadius: 12, 
-    borderTopRightRadius: 12 
+  cardImage: {
+    width: '100%',
+    height: 180,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12
   },
-  cardTextContainer: { 
-    padding: 12 
+  cardTextContainer: {
+    padding: 12
   },
-  cardTitle: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: '#222' 
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222'
   },
-  urduTitle: {
-    textAlign: 'right', // Align text to the right for Urdu
-    fontFamily: 'NotoNastaliqUrdu', // Use a professional Urdu font
+  urduText: {
+    textAlign: 'right',
+    fontFamily: 'NotoNastaliqUrdu',
   },
-  cardSubtitle: { 
-    fontSize: 14, 
-    color: '#666', 
-    marginTop: 2 
+  cardSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2
   },
-  dateContainer:{flexDirection: 'row'},
-  iconGroup: { flexDirection: 'row' },
-  iconRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    paddingHorizontal: 12, 
-    paddingBottom: 8 
+  iconRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingBottom: 8
+  },
+  urduIconRow: {
+    flexDirection: 'row-reverse',
+  },
+  iconButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: '#EDEDED',
+    marginLeft: 10
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8'
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    padding: 20,
+  },
+  errorImage: {
+    width: 250,
+    height: 250,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    backgroundColor: '#BF272a',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    elevation: 3,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 8,
   },
-  iconButton: { 
-    padding: 6, 
-    borderRadius: 8, 
-    backgroundColor: '#EDEDED', 
-    marginLeft: 10 
+  iconGroup: { 
+    flexDirection: 'row' 
   },
-  loader: { 
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center' 
-  },
-  errorText: { 
-    fontSize: 18, 
-    textAlign: 'center', 
-    color: 'red', 
-    marginTop: 20 
-  }
 });
 
 export default LatestNews;

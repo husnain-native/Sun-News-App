@@ -1,32 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { 
   View, Text, FlatList, Image, TouchableOpacity, 
-  StyleSheet, ActivityIndicator, Share, Alert 
+  StyleSheet, Share
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Bookmark, Share2 } from 'lucide-react-native';
 import { decode } from 'html-entities';
-import { useLanguage } from '../context/LanguageContext'; // Import Language Context
+import { useLanguage } from '../context/LanguageContext';
 
 const SportsSection = ({ navigation }) => {
-  const { language } = useLanguage(); // Get the current language from context
+  const { language } = useLanguage();
   const [sportsNews, setSportsNews] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [bookmarkedItems, setBookmarkedItems] = useState([]);
 
   useEffect(() => {
     fetchSportsNews();
     loadBookmarks();
-  }, [language]); // Re-fetch when language changes
+  }, [language]);
 
-  // Fetch Sports News based on selected language
   const fetchSportsNews = async () => {
     try {
-      setLoading(true);
       const API_URL = language === 'en'
-        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed' // English API
-        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=43&_embed'; // Urdu API (replace with correct category ID if needed)
+        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=25&_embed'
+        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=43&_embed';
 
       const response = await fetch(API_URL);
       if (!response.ok) {
@@ -36,12 +33,9 @@ const SportsSection = ({ navigation }) => {
       setSportsNews(data);
     } catch (error) {
       console.error('Error fetching sports news:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Load Bookmarked Items from AsyncStorage
   const loadBookmarks = async () => {
     try {
       const storedBookmarks = await AsyncStorage.getItem('bookmarkedPosts');
@@ -53,36 +47,27 @@ const SportsSection = ({ navigation }) => {
     }
   };
 
-  // Toggle Bookmark (Save or Remove)
   const toggleBookmark = async (item) => {
     try {
-      // First get all existing bookmarks
       const storedBookmarks = await AsyncStorage.getItem('bookmarkedPosts');
       let existingBookmarks = storedBookmarks ? JSON.parse(storedBookmarks) : [];
       
-      // Check if the item is already bookmarked
       const isBookmarked = existingBookmarks.some((news) => news.id === item.id);
       
       let updatedBookmarks;
       if (isBookmarked) {
-        // Remove bookmark
         updatedBookmarks = existingBookmarks.filter((news) => news.id !== item.id);
       } else {
-        // Add bookmark
         updatedBookmarks = [...existingBookmarks, item];
       }
       
-      // Save to AsyncStorage
       await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
-      
-      // Update local state
       setBookmarkedItems(updatedBookmarks);
     } catch (error) {
       console.error('Error saving bookmark:', error);
     }
   };
 
-  // Share News
   const shareNews = async (title, url) => {
     try {
       await Share.share({
@@ -93,7 +78,6 @@ const SportsSection = ({ navigation }) => {
     }
   };
 
-  // Render News Item
   const renderNewsItem = ({ item }) => {
     const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || require('../assets/notfound.png');
     const isBookmarked = bookmarkedItems.some((news) => news.id === item.id);
@@ -137,49 +121,45 @@ const SportsSection = ({ navigation }) => {
     );
   };
 
-  if (loading) {
-    // return <ActivityIndicator size="large" color="#BF272a" style={{ marginTop: 20 }} />;
-  }
-
   return (
     <View style={styles.sectionContainer}>
-      {/* Header Row */}
-      <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
-        {/* Icon + Text Container */}
-        <View style={{ flexDirection: language === 'ur' ? 'row-reverse' : 'row', alignItems: 'center' }}>
-          <MaterialCommunityIcons 
-            name="football" 
-            size={34} 
-            color="#BF272a" 
-            style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }} // ✅ Add space on the right in Urdu mode
-          />
-          <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
-            {language === 'ur' ? "کھیل" : "SPORTS"}
-          </Text>
-        </View>
-        {/* See All Button */}
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('BottomTabs', {
-            screen: 'HOME',
-            params: {
-              screen: 'SportsScreen'
-            }
-          })}
-          style={language === 'ur' ? { marginLeft: 10 } : null}
-        >
-          <Text style={styles.seeAll}>
-            {language === 'ur' ? "مزید دیکھیں" : "See All"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {sportsNews.length > 0 && (
+        <>
+          <View style={[styles.headerRow, { flexDirection: language === 'ur' ? 'row-reverse' : 'row' }]}>
+            <View style={{ flexDirection: language === 'ur' ? 'row-reverse' : 'row', alignItems: 'center' }}>
+              <MaterialCommunityIcons 
+                name="football" 
+                size={34} 
+                color="#BF272a" 
+                style={language === 'ur' ? { marginRight: 10 } : { marginLeft: 10 }}
+              />
+              <Text style={[styles.sectionTitle, language === 'ur' && styles.urduSectionTitle]}>
+                {language === 'ur' ? "کھیل" : "SPORTS"}
+              </Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('BottomTabs', {
+                screen: 'HOME',
+                params: {
+                  screen: 'SportsScreen'
+                }
+              })}
+              style={language === 'ur' ? { marginLeft: 10 } : null}
+            >
+              <Text style={styles.seeAll}>
+                {language === 'ur' ? "مزید دیکھیں" : "See All"}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-      {/* News List */}
-      <FlatList
-        data={sportsNews.slice(0, 3)}
-        keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
-        renderItem={renderNewsItem}
-        showsVerticalScrollIndicator={false}
-      />
+          <FlatList
+            data={sportsNews.slice(0, 3)}
+            keyExtractor={(item, index) => (item.id ? item.id.toString() : index.toString())}
+            renderItem={renderNewsItem}
+            showsVerticalScrollIndicator={false}
+          />
+        </>
+      )}
     </View>
   );
 };

@@ -111,6 +111,16 @@ const NewsDetailsScreen = ({ route, navigation }) => {
       </View>
     );
   }
+  // if (error) {
+  //   return (
+  //     <View style={styles.errorContainer}>
+  //       <Image
+  //         source={require('../assets/error.jpg')}
+  //         style={styles.errorImage}
+  //         accessibilityLabel="Error"
+  //       />
+  //       </View>);
+  //       }
 
   const imageUrl = news.image ? { uri: news.image } : require('../assets/notfound.png');
   const videoUrl = news.videoUrl;
@@ -387,6 +397,20 @@ const urduHtmlStyles = {
     textDecorationLine: 'underline',
     fontFamily: 'NotoNastaliqUrdu', // Urdu font
   },
+    ///////////////////////////////////////
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#fff',
+      padding: 20,
+    },
+    errorImage: {
+      width: 300,
+      height: 300,
+      resizeMode: 'contain',
+      marginBottom: 20,
+    },
 };
 const englishBaseStyle = {
   textAlign: 'left',

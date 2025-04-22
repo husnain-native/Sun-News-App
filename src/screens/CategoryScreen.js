@@ -1,163 +1,184 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, FlatList, Image, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Dimensions, Share, Alert, RefreshControl
+  ActivityIndicator, Dimensions, Share, Alert
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Bookmark } from 'lucide-react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import RNRestart from 'react-native-restart';
 import CategoryNavigation from '../components/CategoryNavigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLanguage } from '../context/LanguageContext'; // Import Language Context
+import { useLanguage } from '../context/LanguageContext';
 
 const CategoryScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { language } = useLanguage(); // Get the current language from context
+  const { language } = useLanguage();
 
-  // Extract category and language params
   const { categoryId, categoryName } = route.params || {};
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
 
-  // Fetch posts from API
   const fetchPosts = async () => {
     setLoading(true);
+    setError(null);
     try {
-      if (categoryId !== undefined && categoryId !== null) {
-        const API_URL =
-          language === 'en'
-            ? `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
-            : `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`;
+      if (categoryId) {
+        const API_URL = language === 'en'
+          ? `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
+          : `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`;
 
         const response = await fetch(API_URL);
-        if (!response.ok) {
-          throw new Error(`API request failed with status ${response.status}`);
-        }
-        const data = await response.json();
-        setPosts(data);
+        if (!response.ok) throw new Error(language === 'en' ? 'Network failed' : 'نیٹ ورک  ناکام');
+        
+        setPosts(await response.json());
       }
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      setError(error.message);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(<Text style={color='#bf272a'}>Connection Failed!</Text>);rror(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load bookmarked posts from AsyncStorage
   const loadBookmarkedPosts = async () => {
     try {
-      const savedPosts = await AsyncStorage.getItem('bookmarkedPosts');
-      if (savedPosts) {
-        setBookmarkedPosts(JSON.parse(savedPosts));
-      }
-    } catch (error) {
-      console.error('Failed to load bookmarks:', error);
+      const saved = await AsyncStorage.getItem('bookmarkedPosts');
+      if (saved) setBookmarkedPosts(JSON.parse(saved));
+    } catch (err) {
+      console.error('Bookmarks error:', err);
     }
   };
 
-  // Toggle bookmark function
   const toggleBookmark = async (post) => {
     try {
-      setBookmarkedPosts((prevBookmarks) => {
-        const updatedBookmarks = prevBookmarks.some(item => item.id === post.id)
-          ? prevBookmarks.filter(item => item.id !== post.id)
-          : [...prevBookmarks, post];
+      const updatedBookmarks = bookmarkedPosts.some(item => item.id === post.id)
+        ? bookmarkedPosts.filter(item => item.id !== post.id)
+        : [...bookmarkedPosts, post];
 
-        AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks)).catch((err) => {
-          console.error('Error saving bookmarks:', err);
-        });
-        return updatedBookmarks;
-      });
+      setBookmarkedPosts(updatedBookmarks);
+      await AsyncStorage.setItem('bookmarkedPosts', JSON.stringify(updatedBookmarks));
     } catch (error) {
       console.error('Error toggling bookmark:', error);
     }
   };
 
-  // Share post function
   const sharePost = async (title, link) => {
     try {
-      const message = `${link}`;
-      await Share.share({ message, url: link });
+      await Share.share({ message: link, url: link });
     } catch (error) {
-      console.error('Error sharing post:', error.message);
-      Alert.alert("شیئرنگ ناکام", "پوسٹ شیئر کرنے میں مسئلہ درپیش آیا۔");
+      Alert.alert(
+        language === 'en' ? "Sharing Failed" : "شیئرنگ ناکام",
+        language === 'en' 
+          ? "There was a problem sharing the post." 
+          : "پوسٹ شیئر کرنے میں مسئلہ درپیش آیا۔"
+      );
     }
   };
 
-  // Handle Pull-to-Refresh
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchPosts();
-    setRefreshing(false);
-  }, []);
+  const handleRestart = async () => {
+    try {
+      await RNRestart.Restart();
+    } catch (restartError) {
+      Alert.alert(
+        language === 'en' ? 'Refresh Failed' : 'ری فریش ناکام',
+        language === 'en' 
+          ? 'Please manually close and reopen the app' 
+          : 'براہ کرم دستی طور پر ایپ بند کریں اور دوبارہ کھولیں'
+      );
+    }
+  };
 
-  // Fetch posts and load bookmarks when categoryId or language changes
   useEffect(() => {
     fetchPosts();
     loadBookmarkedPosts();
   }, [categoryId, language]);
 
-  // Render individual news item
-  const renderNewsItem = ({ item }) => {
-    if (!item || !item.id) return null;
-
-    const title = item.title?.rendered || 'No Title';
-    const imageUrl = item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150';
-    const date = item.date ? new Date(item.date).toDateString() : 'Date not available';
-    const isBookmarked = bookmarkedPosts.some(post => post.id === item.id);
-
-    // Check for both video URL types
-    const videoUrl = item.tie_video_url || item.tic_video_url;
-
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => navigation.navigate('NewsDetails', {
-          news: {
-            title: item.title.rendered,
-            content: item.content.rendered,
-            description: item.excerpt.rendered,
-            image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
-            source: { name: 'Sun News' },
-            publishedAt: item.date,
-            videoUrl: videoUrl // Pass the video URL if present
-          },
-          categoryId: categoryId,
-          categoryName: categoryName
-        })}
-      >
-        <Image source={{ uri: imageUrl }} style={styles.cardImage} />
-        <View style={styles.cardTextContainer}>
-          <Text style={[styles.cardTitle, language === 'ur' && styles.urduText]} numberOfLines={3}>
-            {title}
+  const renderNewsItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('NewsDetails', {
+        news: {
+          title: item.title.rendered,
+          content: item.content.rendered,
+          image: item._embedded?.['wp:featuredmedia']?.[0]?.source_url,
+          publishedAt: item.date,
+          videoUrl: item.tie_video_url || item.tic_video_url
+        },
+        categoryId,
+        categoryName
+      })}
+    >
+      <Image 
+        source={{ uri: item._embedded?.['wp:featuredmedia']?.[0]?.source_url || 'https://via.placeholder.com/150' }} 
+        style={styles.cardImage} 
+      />
+      <View style={styles.cardTextContainer}>
+        <Text style={[styles.cardTitle, language === 'ur' && styles.urduText]} numberOfLines={3}>
+          {item.title?.rendered || (language === 'en' ? 'No Title' : 'کوئی عنوان نہیں')}
+        </Text>
+      </View>
+      <View style={[styles.iconRow, language === 'ur' && styles.urduIconRow]}>
+        <View style={styles.dateContainer}>
+          <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{ marginEnd: 5 }} />
+          <Text style={styles.cardSubtitle}>
+            {item.date ? new Date(item.date).toDateString() : (language === 'en' ? 'Date not available' : 'تاریخ دستیاب نہیں')}
           </Text>
         </View>
-        <View style={[styles.iconRow, language === 'ur' && styles.urduIconRow]}>
-          <View style={styles.dateContainer}>
-            <MaterialCommunityIcons name="calendar" size={24} color="#bf272a" style={{ marginEnd: 5 }} />
-            <Text style={styles.cardSubtitle}>{date}</Text>
-          </View>
-          <View style={styles.iconGroup}>
-            <TouchableOpacity onPress={() => toggleBookmark(item)} style={styles.iconButton}>
-              <Bookmark size={20} color={isBookmarked ? "#BF272a" : "#666"} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => sharePost(title, item.link)} style={styles.iconButton}>
-              <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.iconGroup}>
+          <TouchableOpacity 
+            onPress={() => toggleBookmark(item)} 
+            style={styles.iconButton}
+          >
+            <Bookmark 
+              size={20} 
+              color={bookmarkedPosts.some(p => p.id === item.id) ? "#BF272a" : "#666"} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => sharePost(item.title?.rendered, item.link)} 
+            style={styles.iconButton}
+          >
+            <MaterialCommunityIcons name="share-variant-outline" size={20} color="#bf272a" />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-    );
-  };
+      </View>
+    </TouchableOpacity>
+  );
 
-  if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
-  if (error) return <Text style={styles.errorText}>Error: {error}</Text>;
+  if (loading) return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#BF272a" />
+    </View>
+  );
+
+  if (error) return (
+    <View style={styles.errorContainer}>
+      <Image
+        source={require('../assets/new.jpg')}
+        style={styles.errorImage}
+        accessibilityLabel="Error"
+      />
+      <Text style={styles.errorText}>
+        {error || (language === 'en' 
+          ? 'Network Failed ' 
+        :'نیٹورک ناکام')}
+      </Text>
+      <TouchableOpacity 
+        style={styles.retryButton} 
+        onPress={handleRestart}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.retryText}>
+          {language === 'ur' ? 'ری فریش ' : 'Refresh'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -169,17 +190,16 @@ const CategoryScreen = () => {
           <MaterialIcons name="category" size={34} color="#BF272a" />
           <View style={[styles.titleContainer, language === 'ur' && styles.rtlTitleContainer]}>
             <Text style={styles.sectionTitle}>
-              {categoryName ? categoryName.toUpperCase() : 'CATEGORY'}
+              {categoryName?.toUpperCase() || (language === 'en' ? 'CATEGORY' : 'زمرہ')}
             </Text>
             <View style={styles.underline} />
           </View>
         </View>
         <FlatList
           data={posts}
-          keyExtractor={(item) => item.id.toString()}
           renderItem={renderNewsItem}
+          keyExtractor={item => item.id.toString()}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         />
       </View>
     </View>
@@ -187,8 +207,16 @@ const CategoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  categoryNavContainer: { width: Dimensions.get('window').width, backgroundColor: '#fff' },
-  container: { flex: 1, backgroundColor: '#f8f8f8', paddingHorizontal: 15, paddingTop: 10 },
+  categoryNavContainer: { 
+    width: Dimensions.get('window').width, 
+    backgroundColor: '#fff' 
+  },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#f8f8f8', 
+    paddingHorizontal: 15, 
+    paddingTop: 10 
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -196,14 +224,14 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   rtlHeaderRow: {
-    flexDirection: 'row-reverse', // Reverse the direction for Urdu
+    flexDirection: 'row-reverse',
   },
   titleContainer: {
     flexDirection: 'column',
     alignItems: 'flex-start'
   },
   rtlTitleContainer: {
-    alignItems: 'flex-end', // Align text to the right for Urdu
+    alignItems: 'flex-end',
   },
   sectionTitle: {
     fontSize: 20,
@@ -241,8 +269,8 @@ const styles = StyleSheet.create({
     color: '#222'
   },
   urduText: {
-    textAlign: 'right', // Align text to the right for Urdu
-    fontFamily: 'NotoNastaliqUrdu', // Use a professional Urdu font
+    textAlign: 'right',
+    fontFamily: 'NotoNastaliqUrdu',
   },
   cardSubtitle: {
     fontSize: 14,
@@ -257,7 +285,7 @@ const styles = StyleSheet.create({
     paddingBottom: 8
   },
   urduIconRow: {
-    flexDirection: 'row-reverse', // Reverse layout for Urdu mode
+    flexDirection: 'row-reverse',
   },
   iconButton: {
     padding: 6,
@@ -265,23 +293,53 @@ const styles = StyleSheet.create({
     backgroundColor: '#EDEDED',
     marginLeft: 10
   },
-  loader: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8'
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    padding: 20,
+  },
+  errorImage: {
+    width: 250,
+    height: 250,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
   errorText: {
-    fontSize: 18,
+    fontSize: 16,
+    color: '#bf272a',
     textAlign: 'center',
-    color: 'red',
-    marginTop: 20
+    marginBottom: 20,
+    lineHeight: 22,
+    paddingHorizontal: 20,
+  },
+  retryButton: {
+    backgroundColor: '#BF272a',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    elevation: 3,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
   },
-  iconGroup: { flexDirection: 'row' },
+  iconGroup: { 
+    flexDirection: 'row' 
+  },
 });
 
 export default CategoryScreen;

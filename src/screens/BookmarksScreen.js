@@ -10,6 +10,7 @@ import CategoryNavigation from '../components/CategoryNavigation';
 const BookmarkScreen = ({ navigation }) => {
   const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadBookmarks = async () => {
@@ -20,6 +21,7 @@ const BookmarkScreen = ({ navigation }) => {
         }
       } catch (error) {
         console.error('Error loading bookmarks:', error);
+        setError(<Text style={color='#bf272a'}>Connection Failed!</Text>);
       } finally {
         setLoading(false);
       }
@@ -103,6 +105,15 @@ const BookmarkScreen = ({ navigation }) => {
   };
 
   if (loading) return <ActivityIndicator size="large" color="#BF272a" style={styles.loader} />;
+  if (error) return (
+    <View style={styles.loadingContainer}>
+      <Image
+        source={require('../assets/error.jpg')}
+        style={{ width: 200, height: 200, resizeMode: 'contain' }}
+        accessibilityLabel="Error"
+      />
+    </View>
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -157,6 +168,27 @@ const styles = StyleSheet.create({
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    height: '100%'
+  },
+  ///////////////////////////////////////
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    padding: 20,
+  },
+  errorImage: {
+    width: 300,
+    height: 300,
+    resizeMode: 'contain',
+    marginBottom: 20,
   },
 });
 

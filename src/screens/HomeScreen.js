@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FlatList, StyleSheet, View, Dimensions, ActivityIndicator } from 'react-native';
+import { FlatList, StyleSheet, View, Dimensions, ActivityIndicator, Image } from 'react-native';
 import LatestNewsSection from '../components/LatestNewsSection';
 import BusinessSection from '../components/BusinessSection';
 import EntertainmentSection from '../components/EntertainmentSection';
@@ -11,29 +11,51 @@ import ThreeDotLoader from '../components/ThreeDotLoader';
 
 const HomeScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   // Simulate loading all data
   useEffect(() => {
     const loadData = async () => {
-      // In a real app, you might have async operations here
-      // For now, we'll just simulate a loading delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setIsLoading(false);
+      try {
+        // In a real app, you might have async operations here
+        // For now, we'll just simulate a loading delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Simulate error condition here if needed, e.g.:
+        // throw new Error('Network error');
+        setIsLoading(false);
+      } catch (error) {
+        setHasError(true);
+        setIsLoading(true);
+      }
     };
 
     loadData();
   }, []);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ThreeDotLoader />
+      </View>
+      
+    );
+  }
+
+  if (hasError) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Image
+          source={require('../assets/error.jpg')}
+          style={{ width: 200, height: 200, resizeMode: 'contain' }}
+          accessibilityLabel="Error"
+        />
       </View>
     );
   }
 
   return (
     <>
-      {!isLoading && (
+      {!isLoading && !hasError && (
         <>
           <View>
             <View style={styles.categoryNavContainer}>
@@ -44,12 +66,12 @@ const HomeScreen = ({ navigation }) => {
             style={styles.container}
             data={[ 
               {
-                key: 'advertisementBanner',
-                component: <AdvertisementBanner />,
-              },
-              {
                 key: 'latestNewsSection',
                 component: <LatestNewsSection />,
+              },
+              {
+                key: 'advertisementBanner',
+                component: <AdvertisementBanner />,
               },
               {
                 key: 'businessSection',

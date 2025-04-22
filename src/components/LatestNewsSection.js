@@ -29,7 +29,7 @@ const LatestNewsSection = () => {
         const data = await response.json();
         setLatestNews(data);
       } catch (error) {
-        setError(error.message);
+        setError(<Text style={color='#bf272a'}>Connection Failed!</Text>);
       } finally {
         setLoading(true);
       }
@@ -99,10 +99,7 @@ const LatestNewsSection = () => {
   };
 
 
-  if (error) {
-    Alert.alert('Error', `Failed to load latest news: ${error}`);
-    return null;
-  }
+ 
 
   return (
     <View style={styles.latestNewsContainer}>
