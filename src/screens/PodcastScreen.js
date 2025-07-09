@@ -29,8 +29,8 @@ const PodcastScreen = () => {
     setError(null);
     try {
       const API_URL = language === 'en'
-        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=50&_embed'
-        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=1&_embed';
+        ? 'https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/posts&categories=50&_embed'
+        : 'https://sunnewshd.tv/index.php?rest_route=/wp/v2/posts&categories=1&_embed';
 
       const response = await fetch(API_URL);
       if (!response.ok) {
@@ -311,11 +311,11 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     resizeMode: 'contain',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   errorText: {
     fontSize: 16,
-    color: '#333',
+    color: '#bf272a',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22,

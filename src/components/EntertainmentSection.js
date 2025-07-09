@@ -27,8 +27,8 @@ const EntertainmentSection = ({ navigation }) => {
       setLoading(true);
       setError(null);
       const API_URL = language === 'en'
-        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=26&_embed'
-        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=37&_embed';
+        ? 'https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/posts&categories=26&_embed'
+        : 'https://sunnewshd.tv/index.php?rest_route=/wp/v2/posts&categories=33&_embed';
 
       const response = await fetch(API_URL);
       if (!response.ok) {
@@ -104,7 +104,7 @@ const EntertainmentSection = ({ navigation }) => {
         language === 'en' ? 'Restart Failed' : 'ری اسٹارٹ ناکام',
         language === 'en' 
           ? 'Please manually close and reopen the app' 
-          : 'براہ کرم دستی طور پر ایپ بند کریں اور دوبارہ کھولیں'
+          : 'براہ کرم ایپ بند کریں اور دوبارہ کھولیں'
       );
     }
   };
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     resizeMode: 'contain',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   errorText: {
     fontSize: 16,

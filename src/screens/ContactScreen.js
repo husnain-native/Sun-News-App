@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     width: 150,
     height: 150,
     resizeMode: 'contain',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   errorText: {
     fontSize: 16,

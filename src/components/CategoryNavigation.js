@@ -5,8 +5,8 @@ import { useLanguage } from '../context/LanguageContext';
 import LiveBadge from './LiveBadge';
 
 // API URLs for categories
-const ENGLISH_API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
-const URDU_API_URL = 'https://sunnewshd.tv/wp-json/wp/v2/categories?per_page=100';
+const ENGLISH_API_URL = 'https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/categories&per_page=100';
+const URDU_API_URL = 'https://sunnewshd.tv/index.php?rest_route=/wp/v2/categories&per_page=100';
 
 const CategoryNavigation = () => {
   const { language } = useLanguage();

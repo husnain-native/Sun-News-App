@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
     direction: 'rtl'
   },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  errorText: { fontSize: 18, color: 'red', fontWeight: 'bold' },
+  errorText: { fontSize: 18, color: '#bf272a', fontWeight: 'bold' },
   bottomLine: {
     fontSize: 14,
     color: '#343A40',
@@ -409,7 +409,7 @@ const urduHtmlStyles = {
       width: 300,
       height: 300,
       resizeMode: 'contain',
-      marginBottom: 20,
+      marginBottom: 10,
     },
 };
 const englishBaseStyle = {

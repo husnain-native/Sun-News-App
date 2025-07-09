@@ -29,8 +29,8 @@ const CategoryScreen = () => {
     try {
       if (categoryId) {
         const API_URL = language === 'en'
-          ? `https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=${categoryId}&_embed`
-          : `https://sunnewshd.tv/wp-json/wp/v2/posts?categories=${categoryId}&_embed`;
+          ? `https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/posts&categories=${categoryId}&_embed`
+          : `https://sunnewshd.tv/index.php?rest_route=/wp/v2/posts&categories=${categoryId}&_embed`;
 
         const response = await fetch(API_URL);
         if (!response.ok) throw new Error(language === 'en' ? 'Network failed' : 'نیٹ ورک  ناکام');
@@ -87,8 +87,8 @@ const CategoryScreen = () => {
       Alert.alert(
         language === 'en' ? 'Refresh Failed' : 'ری فریش ناکام',
         language === 'en' 
-          ? 'Please manually close and reopen the app' 
-          : 'براہ کرم دستی طور پر ایپ بند کریں اور دوبارہ کھولیں'
+          ? 'Restart app' 
+          : 'ایپ بند کریں اور دوبارہ کھولیں'
       );
     }
   };
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     width: 250,
     height: 250,
     resizeMode: 'contain',
-    marginBottom: 20,
+    marginBottom: 10,
   },
   errorText: {
     fontSize: 16,

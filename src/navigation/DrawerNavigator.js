@@ -8,8 +8,8 @@ import BottomTabNavigator from './BottomTabNavigator';
 
 const Drawer = createDrawerNavigator();
 
-const ENGLISH_API_URL = 'https://sunnewshd.tv/english/wp-json/wp/v2/categories?per_page=100';
-const URDU_API_URL = 'https://sunnewshd.tv/wp-json/wp/v2/categories?per_page=100';
+const ENGLISH_API_URL = 'https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/categories&per_page=100';
+const URDU_API_URL = 'https://sunnewshd.tv/index.php?rest_route=/wp/v2/categories&per_page=100';
 
 const CustomHeaderTitle = ({ toggleLanguage, language }) => (
   <View style={styles.headerContainer}>
@@ -104,7 +104,11 @@ const CustomDrawerContent = ({ navigation, language }) => {
 
       <View style={styles.drawerItemsContainer}>
         <DrawerItem
-          label={language === 'en' ? 'Home' : 'ہوم'}
+          label={() => (
+            <Text style={[styles.drawerLabel(language), { textAlign: language === 'ur' ? 'right' : 'left' }]}>
+              {language === 'en' ? 'Home' : 'ہوم'}
+            </Text>
+          )}
           onPress={handleHomePress}
           labelStyle={styles.drawerLabel(language)}
           style={!activeCategory && styles.activeCategoryBackground}
@@ -113,7 +117,11 @@ const CustomDrawerContent = ({ navigation, language }) => {
         {categories.map((category) => (
           <DrawerItem
             key={category.id}
-            label={category.name}
+            label={() => (
+              <Text style={[styles.drawerLabel(language), { textAlign: language === 'ur' ? 'right' : 'left' }]}>
+                {category.name}
+              </Text>
+            )}
             onPress={() => handleCategoryPress(category)}
             labelStyle={[
               styles.drawerLabel(language),
@@ -157,7 +165,7 @@ const DrawerNavigator = () => {
           backgroundColor: '#1E1E2D',
           width: '85%',
         },
-        drawerPosition: 'left', // Always show drawer on left side
+        drawerPosition: 'left', // Dynamic drawer position based on language
         drawerType: 'front',
         overlayColor: 'transparent',
         sceneContainerStyle: {
@@ -169,7 +177,7 @@ const DrawerNavigator = () => {
         drawerLabelStyle: { 
           fontSize: 16, 
           fontWeight: 'bold',
-          textAlign: language === 'ur' ? 'right' : 'left', // Change alignment based on language
+          flexDirection: language === 'ur' ? 'row-reverse' : 'row',
         },
       }}
     >
@@ -251,7 +259,6 @@ const styles = StyleSheet.create({
     fontSize: 19, 
     fontWeight: 'bold', 
     color: 'white',
-    textAlign: language === 'ur' ? 'right' : 'left',
     marginLeft: 0,
     paddingLeft: 0,
   }),

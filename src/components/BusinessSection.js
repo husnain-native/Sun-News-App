@@ -37,8 +37,8 @@ const BusinessSection = ({ navigation }) => {
   const fetchNews = async () => {
     try {
       const API_URL = language === 'en'
-        ? 'https://sunnewshd.tv/english/wp-json/wp/v2/posts?categories=19&_embed'
-        : 'https://sunnewshd.tv/wp-json/wp/v2/posts?categories=28&_embed';
+        ? 'https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/posts&categories=19&_embed'
+        : 'https://sunnewshd.tv/index.php?rest_route=/wp/v2/posts&categories=28&_embed';
 
       const response = await fetch(API_URL);
       if (!response.ok) {

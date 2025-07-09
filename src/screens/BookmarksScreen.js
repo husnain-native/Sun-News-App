@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     resizeMode: 'contain',
-    marginBottom: 20,
+    marginBottom: 10,
   },
 });
 
