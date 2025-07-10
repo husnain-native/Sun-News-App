@@ -69,10 +69,10 @@ const HomeScreen = ({ navigation }) => {
                 key: 'latestNewsSection',
                 component: <LatestNewsSection />,
               },
-              {
-                key: 'advertisementBanner',
-                component: <AdvertisementBanner />,
-              },
+              // {
+              //   key: 'advertisementBanner',
+              //   component: <AdvertisementBanner />,
+              // },
               {
                 key: 'businessSection',
                 component: <BusinessSection navigation={navigation} newsData={newsData.Business || []} />,
