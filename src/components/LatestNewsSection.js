@@ -19,7 +19,7 @@ const LatestNewsSection = () => {
       try {
         setLoading(true);
         const API_URL = language === 'en'
-          ? `https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/posts&categories=26&_embed` // English API
+          ? `https://sunnewshd.tv/english/index.php?rest_route=/wp/v2/posts&categories=24&_embed` // English API
           : `https://sunnewshd.tv/index.php?rest_route=/wp/v2/posts&categories=33&_embed`; // Urdu API
 
         const response = await fetch(API_URL);
